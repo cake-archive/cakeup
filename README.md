@@ -12,7 +12,7 @@ This application will do things like:
 
 ```
 Usage: cakeup [--cake=<latest|VERSION>] [--script=SCRIPT]
-              [--nuget=<latest|VERSION>] [--sdk=1.2.3]
+              [--nuget=<latest|VERSION>] [--sdk=VERSION]
               [--coreclr] [--bootstrap]
 
   --cake   <VERSION>  The version of Cake to install.
