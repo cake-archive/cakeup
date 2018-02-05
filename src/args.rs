@@ -25,7 +25,6 @@ pub struct Arguments {
     pub sdk_version: Version,
     pub use_coreclr: bool,
     pub bootstrap: bool,
-    pub show_help: bool,
     pub remaining: Vec<String>,
 }
 
@@ -47,6 +46,12 @@ pub fn parse() -> Arguments {
         }
     };
 
+    // Should we show help?
+    if matches.opt_present("help") {
+        print_help();
+        process::exit(0);
+    }
+
     // Parse versions.
     let cake_version = parse_version(&matches, "cake");
     let nuget_version = parse_version(&matches, "nuget");
@@ -61,7 +66,6 @@ pub fn parse() -> Arguments {
     // Parse flags.
     let use_coreclr = matches.opt_present("coreclr");
     let bootstrap = matches.opt_present("bootstrap");
-    let show_help = matches.opt_present("help");
 
     // Make sure that SDK isn't set to latest version
     // since we currently have no way of knowing what
@@ -80,12 +84,11 @@ pub fn parse() -> Arguments {
         sdk_version,
         use_coreclr,
         bootstrap,
-        show_help,
         remaining: env::args().skip_while(|a| a != "--").skip(1).collect(),
     };
 }
 
-pub fn print() {
+fn print_help() {
     println!("Usage: cakeup [--cake=<VERSION>] [--script=<SCRIPT>]");
     println!("              [--nuget=<VERSION>] [--sdk=<VERSION>]");
     println!("              [--coreclr] [--bootstrap] [-- ARGUMENTS]\n");
@@ -100,7 +103,7 @@ pub fn print() {
 
 fn print_error_and_exit(text: &str) -> ! {
     println!("Error: {}\n", text);
-    print();
+    print_help();
     process::exit(1);
 }
 
