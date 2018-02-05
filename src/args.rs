@@ -1,37 +1,19 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
 extern crate getopts;
+use self::getopts::{Matches, Options};
 
 use std::env;
+use std::path::PathBuf;
 use std::process;
-use args::getopts::{Matches, Options};
+use config::*;
 
 // Embed the version number.
 const VERSION: &'static str = env!("CARGO_PKG_VERSION");
 
-#[derive(Debug)]
-pub enum Version {
-    None,
-    Latest,
-    Specific(String),
-}
-
-#[derive(Debug)]
-pub enum Script {
-    Default(String),
-    Specific(String),
-}
-
-#[derive(Debug)]
-pub struct Arguments {
-    pub cake_version: Version,
-    pub script: Script,
-    pub nuget_version: Version,
-    pub sdk_version: Version,
-    pub use_coreclr: bool,
-    pub bootstrap: bool,
-    pub remaining: Vec<String>,
-}
-
-pub fn parse() -> Arguments {
+pub fn parse() -> Config {
     let mut options = Options::new();
     options.optopt("", "cake", "", "VERSION");
     options.optopt("", "script", "", "SCRIPT");
@@ -69,8 +51,8 @@ pub fn parse() -> Arguments {
 
     // Parse the script.
     let script: Script = match matches.opt_str("script") {
-        None => Script::Default(String::from("build.cake")),
-        Some(s) => Script::Specific(s),
+        None => Script::Default,
+        Some(s) => Script::Specific(PathBuf::from(s)),
     };
 
     // Parse flags.
@@ -85,9 +67,10 @@ pub fn parse() -> Arguments {
             print_error_and_exit("You must specify a specific SDK version or none at all.")
         }
         _ => {}
-    }
+    };
 
-    return Arguments {
+    return Config {
+        root: get_script_root(&script),
         cake_version,
         script,
         nuget_version,
@@ -126,6 +109,18 @@ fn parse_version(matches: &Matches, name: &str) -> Version {
                 return Version::Latest;
             }
             return Version::Specific(n);
+        }
+    };
+}
+
+fn get_script_root(script: &Script) -> PathBuf {
+    match script {
+        &Script::Default => return env::current_dir().unwrap(),
+        &Script::Specific(ref path) => {
+            if path.is_relative() {
+                return env::current_dir().unwrap();
+            }
+            return path.parent().unwrap().to_path_buf();
         }
     };
 }
