@@ -14,7 +14,7 @@ pub enum Version {
 #[derive(Debug)]
 pub enum Script {
     Default(String),
-    Specific(String)
+    Specific(String),
 }
 
 #[derive(Debug)]
@@ -43,9 +43,7 @@ pub fn parse() -> Arguments {
     let matches = match options.parse(&args[1..]) {
         Ok(m) => m,
         Err(f) => {
-            println!("Error: {}\n", f.to_string());
-            print();
-            process::exit(1);
+            print_error_and_exit(&f.to_string()[..]);
         }
     };
 
@@ -54,15 +52,26 @@ pub fn parse() -> Arguments {
     let nuget_version = parse_version(&matches, "nuget");
     let sdk_version = parse_version(&matches, "sdk");
 
+    // Parse the script.
     let script: Script = match matches.opt_str("script") {
         None => Script::Default(String::from("build.cake")),
-        Some(s) => Script::Specific(s)
+        Some(s) => Script::Specific(s),
     };
 
     // Parse flags.
     let use_coreclr = matches.opt_present("coreclr");
     let bootstrap = matches.opt_present("bootstrap");
     let show_help = matches.opt_present("help");
+
+    // Make sure that SDK isn't set to latest version
+    // since we currently have no way of knowing what
+    // is the latest version of the SDK.
+    match sdk_version {
+        Version::Latest => {
+            print_error_and_exit("You must specify a specific SDK version or none at all.")
+        }
+        _ => {}
+    }
 
     return Arguments {
         cake_version,
@@ -88,6 +97,12 @@ pub fn print() {
     println!("  --bootstrap         Bootstrap Cake modules.");
 }
 
+fn print_error_and_exit(text: &str) -> ! {
+    println!("Error: {}\n", text);
+    print();
+    process::exit(1);
+}
+
 fn parse_version(matches: &Matches, name: &str) -> Version {
     return match matches.opt_str(name) {
         None => Version::None,
@@ -97,5 +112,5 @@ fn parse_version(matches: &Matches, name: &str) -> Version {
             }
             return Version::Specific(n);
         }
-    }
+    };
 }
