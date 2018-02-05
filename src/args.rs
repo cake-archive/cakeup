@@ -95,6 +95,7 @@ pub fn print() {
     println!("  --sdk    <VERSION>  The version of the dotnet SDK to install.");
     println!("  --coreclr           Use CoreCLR version of Cake.");
     println!("  --bootstrap         Bootstrap Cake modules.");
+    println!("  --help              Prints help information.");
 }
 
 fn print_error_and_exit(text: &str) -> ! {
