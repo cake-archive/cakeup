@@ -1,9 +1,5 @@
-mod args;
+extern crate cakeup;
 
 fn main() {
-    // Parse arguments.
-    let args = args::parse();
-
-    // Output arguments.
-    println!("{:#?}", args);
+    cakeup::run(cakeup::args::parse());
 }
