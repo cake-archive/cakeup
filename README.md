@@ -13,7 +13,7 @@ This application will do things like:
 ```
 Usage: cakeup [--cake=<latest|VERSION>] [--script=SCRIPT]
               [--nuget=<latest|VERSION>] [--sdk=VERSION]
-              [--coreclr] [--bootstrap]
+              [--coreclr] [--bootstrap] [-- ARGUMENTS]
 
   --cake   <VERSION>  The version of Cake to install.
   --script <SCRIPT>   The script to execute.
