@@ -21,6 +21,7 @@ Usage: cakeup [--cake=<VERSION>] [--script=<SCRIPT>]
   --sdk    <VERSION>  The version of the dotnet SDK to install.
   --coreclr           Use CoreCLR version of Cake.
   --bootstrap         Bootstrap Cake modules.
+  --version           Prints version information.
   --help              Prints help information.
 ```
 

@@ -4,6 +4,9 @@ use std::env;
 use std::process;
 use args::getopts::{Matches, Options};
 
+// Embed the version number.
+const VERSION: &'static str = env!("CARGO_PKG_VERSION");
+
 #[derive(Debug)]
 pub enum Version {
     None,
@@ -37,6 +40,7 @@ pub fn parse() -> Arguments {
     options.optflag("", "coreclr", "");
     options.optflag("", "bootstrap", "");
     options.optflag("h", "help", "");
+    options.optflag("", "version", "");
 
     let args: Vec<String> = env::args().collect();
     let matches = match options.parse(&args[1..]) {
@@ -49,6 +53,12 @@ pub fn parse() -> Arguments {
     // Should we show help?
     if matches.opt_present("help") {
         print_help();
+        process::exit(0);
+    }
+
+    // Should we show the version number?
+    if matches.opt_present("version") {
+        println!("{}", VERSION);
         process::exit(0);
     }
 
@@ -98,6 +108,7 @@ fn print_help() {
     println!("  --sdk    <VERSION>  The version of the dotnet SDK to install.");
     println!("  --coreclr           Use CoreCLR version of Cake.");
     println!("  --bootstrap         Bootstrap Cake modules.");
+    println!("  --version           Prints version information.");
     println!("  --help              Prints help information.");
 }
 
