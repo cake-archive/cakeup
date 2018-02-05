@@ -11,8 +11,8 @@ This application will do things like:
 ## Usage
 
 ```
-Usage: cakeup [--cake=<latest|VERSION>] [--script=SCRIPT]
-              [--nuget=<latest|VERSION>] [--sdk=VERSION]
+Usage: cakeup [--cake=<VERSION>] [--script=<SCRIPT>]
+              [--nuget=<VERSION>] [--sdk=<VERSION>]
               [--coreclr] [--bootstrap] [-- ARGUMENTS]
 
   --cake   <VERSION>  The version of Cake to install.
