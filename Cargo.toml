@@ -1,0 +1,6 @@
+[package]
+name = "cakeup"
+version = "0.1.0"
+authors = ["Patrik Svensson <patrik@patriksvensson.se>"]
+
+[dependencies]
