@@ -66,27 +66,34 @@ fn download_cake(config: &Config) -> Result<(), Error> {
     // Get the version we're going to use.
     let mut version = config.cake_version.clone();
     if version == "latest" {
-        println!("Asking GitHub what the latest release is...");
+        println!("Figuring out what the latest release of Cake is...");
         let release = github::get_latest_release("cake-build", "cake")?;
-        version = release.name;
+        version = String::from(&release.name[1..]); // Github releases are prefixed with "v".
+    }
+
+    // What flavor of Cake do we want to download?
+    let mut flavor = "Cake";
+    if config.use_coreclr {
+        flavor = "Cake.CoreClr";
     }
 
     // Install Cake.
-    let cake_folder_path = config.tools.join(format!("cake.{}", &version));
-    let cake_zip_filename = config.get_cake_filename(&version);
-    let cake_zip_path = config.tools.join(&cake_zip_filename);
+    let cake_folder_path = config.tools.join(format!("{}.{}", flavor.to_lowercase(), version));
     if !cake_folder_path.exists() {
 
-        // Zip file not present?
-        if !cake_zip_path.exists() {
-            println!("Downloading Cake {0}...", version);
-            let url = &format!("https://github.com/cake-build/cake/releases/download/{0}/{1}", version, cake_zip_filename);
-            http::download(&url, &cake_zip_path)?;
+        let cake_nupkg_path = config.tools.join(
+            &config.get_cake_package_name(&version));
+
+        // Nupkg file not present?
+        if !cake_nupkg_path.exists() {
+            println!("Downloading {} {}...", flavor, version);
+            let url = &format!("https://www.nuget.org/api/v2/package/{}/{}", flavor, version);
+            http::download(&url, &cake_nupkg_path)?;
         }
 
-        // Unzip Cake.
+        // Nupkg files are just zip files, so unzip it.
         println!("Unzipping binaries...");
-        zip::unzip(&cake_zip_path, &cake_folder_path)?;
+        zip::unzip(&cake_nupkg_path, &cake_folder_path)?;
     }
 
     return Ok(());

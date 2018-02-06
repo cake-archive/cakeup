@@ -52,11 +52,11 @@ impl Config {
         }
     }
 
-    pub fn get_cake_filename(&self, version: &String) -> String {
+    pub fn get_cake_package_name(&self, version: &String) -> String {
         if self.use_coreclr {
-            return format!("Cake-bin-coreclr-{}.zip", version);
+            return format!("cake.coreclr.{}.nupkg", version);
         }
-        return format!("Cake-bin-net461-{}.zip", version);
+        return format!("cake.{}.nupkg", version);
     }
 }
 
