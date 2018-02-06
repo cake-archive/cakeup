@@ -5,6 +5,7 @@
 mod args;
 mod config;
 mod commands;
+mod utils;
 
 use std::process;
 use args::*;

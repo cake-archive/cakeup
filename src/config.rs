@@ -44,6 +44,12 @@ impl Config {
             remaining: args.arguments.clone()
         };
     }
+
+    pub fn should_install_nuget(&self) -> bool {
+        return match self.nuget_version {
+            None => false, _ => true
+        }
+    }
 }
 
 fn create_option(value: &String) -> Option<String> {
