@@ -3,53 +3,32 @@
 // See the LICENSE file in the project root for more information.
 
 use std::path::PathBuf;
+use args;
 
+#[allow(dead_code)]
 #[derive(Debug)]
 pub struct Config {
     pub root: PathBuf,
-    pub cake_version: Version,
-    pub script: Script,
-    pub nuget_version: Version,
-    pub sdk_version: Version,
+    pub cake_version: Option<String>,
+    pub script: Option<String>,
+    pub nuget_version: Option<String>,
+    pub sdk_version: Option<String>,
     pub use_coreclr: bool,
     pub bootstrap: bool,
     pub remaining: Vec<String>,
 }
 
-#[derive(Debug)]
-pub enum Version {
-    None,
-    Latest,
-    Specific(String),
-}
-
-#[allow(dead_code)]
-impl Version {
-    pub fn has_version(&self) -> bool {
-        match self {
-            &Version::None => return false,
-            _ => return true
-        }
+impl Config {
+    pub fn new(args: &args::Arguments) -> Self {
+        return Config {
+            root: PathBuf::from(String::from("")),
+            cake_version: None,
+            script: None,
+            nuget_version: None,
+            sdk_version: None,
+            use_coreclr: false,
+            bootstrap: false,
+            remaining: args.arguments.clone()
+        };
     }
-
-    pub fn want_latest(&self) -> bool {
-        match self {
-            &Version::Latest => return true,
-            _ => return false
-        }
-    }
-
-    pub fn get_version(&self) -> &str {
-        match self {
-            &Version::None => return "",
-            &Version::Latest => return "latest",
-            &Version::Specific(ref v) => return v
-        }
-    }
-}
-
-#[derive(Debug)]
-pub enum Script {
-    Default,
-    Specific(PathBuf),
 }

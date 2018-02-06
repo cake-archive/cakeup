@@ -3,17 +3,25 @@
 // See the LICENSE file in the project root for more information.
 
 extern crate getopts;
-use self::getopts::{Matches, Options};
+use self::getopts::{Options};
 
 use std::env;
-use std::path::PathBuf;
-use std::process;
-use config::*;
+use std::io::{Error, ErrorKind};
 
-// Embed the version number.
-const VERSION: &'static str = env!("CARGO_PKG_VERSION");
+#[derive(Debug)]
+pub struct Arguments {
+    pub cake_version: String,
+    pub script: String,
+    pub nuget_version: String,
+    pub sdk_version: String,
+    pub use_coreclr: bool,
+    pub bootstrap: bool,
+    pub show_help: bool,
+    pub show_version: bool,
+    pub arguments: Vec<String>,
+}
 
-pub fn parse() -> Config {
+pub fn parse() -> Result<Arguments, Error> {
     let mut options = Options::new();
     options.optopt("", "cake", "", "VERSION");
     options.optopt("", "script", "", "SCRIPT");
@@ -28,99 +36,34 @@ pub fn parse() -> Config {
     let matches = match options.parse(&args[1..]) {
         Ok(m) => m,
         Err(f) => {
-            print_error_and_exit(&f.to_string()[..]);
+            return Err(Error::new(ErrorKind::Other, f.to_string()));
         }
     };
-
-    // Should we show help?
-    if matches.opt_present("help") {
-        print_help();
-        process::exit(0);
-    }
-
-    // Should we show the version number?
-    if matches.opt_present("version") {
-        println!("{}", VERSION);
-        process::exit(0);
-    }
 
     // Parse versions.
-    let cake_version = parse_version(&matches, "cake");
-    let nuget_version = parse_version(&matches, "nuget");
-    let sdk_version = parse_version(&matches, "sdk");
-
-    // Parse the script.
-    let script: Script = match matches.opt_str("script") {
-        None => Script::Default,
-        Some(s) => Script::Specific(PathBuf::from(s)),
-    };
-
-    // Parse flags.
+    let script = matches.opt_str("script").unwrap_or(String::from("latest"));
+    let cake_version = matches.opt_str("cake").unwrap_or(String::from("latest"));
+    let nuget_version = matches.opt_str("nuget").unwrap_or(String::from(""));
+    let sdk_version = matches.opt_str("sdk").unwrap_or(String::from(""));
     let use_coreclr = matches.opt_present("coreclr");
+    let show_help = matches.opt_present("help");
+    let show_version = matches.opt_present("version");
     let bootstrap = matches.opt_present("bootstrap");
 
-    // Make sure that SDK isn't set to latest version
-    // since we currently have no way of knowing what
-    // is the latest version of the SDK.
-    match sdk_version {
-        Version::Latest => {
-            print_error_and_exit("You must specify a specific SDK version or none at all.")
-        }
-        _ => {}
-    };
+    // We currently have no way of knowing what is the latest version of the SDK.
+    if sdk_version == "latest" {
+        return Err(Error::new(ErrorKind::Other, "You must specify a specific SDK version or none at all."));
+    }
 
-    return Config {
-        root: get_script_root(&script),
+    return Ok(Arguments {
         cake_version,
         script,
         nuget_version,
         sdk_version,
         use_coreclr,
         bootstrap,
-        remaining: env::args().skip_while(|a| a != "--").skip(1).collect(),
-    };
-}
-
-fn print_help() {
-    println!("Usage: cakeup [--cake=<VERSION>] [--script=<SCRIPT>]");
-    println!("              [--nuget=<VERSION>] [--sdk=<VERSION>]");
-    println!("              [--coreclr] [--bootstrap] [-- ARGUMENTS]\n");
-    println!("  --cake   <VERSION>  The version of Cake to install.");
-    println!("  --script <SCRIPT>   The script to execute.");
-    println!("  --nuget  <VERSION>  The version of NuGet to install.");
-    println!("  --sdk    <VERSION>  The version of the dotnet SDK to install.");
-    println!("  --coreclr           Use CoreCLR version of Cake.");
-    println!("  --bootstrap         Bootstrap Cake modules.");
-    println!("  --version           Prints version information.");
-    println!("  --help              Prints help information.");
-}
-
-fn print_error_and_exit(text: &str) -> ! {
-    println!("Error: {}\n", text);
-    print_help();
-    process::exit(1);
-}
-
-fn parse_version(matches: &Matches, name: &str) -> Version {
-    return match matches.opt_str(name) {
-        None => Version::None,
-        Some(n) => {
-            if n == "latest" {
-                return Version::Latest;
-            }
-            return Version::Specific(n);
-        }
-    };
-}
-
-fn get_script_root(script: &Script) -> PathBuf {
-    match script {
-        &Script::Default => return env::current_dir().unwrap(),
-        &Script::Specific(ref path) => {
-            if path.is_relative() {
-                return env::current_dir().unwrap();
-            }
-            return path.parent().unwrap().to_path_buf();
-        }
-    };
+        show_help,
+        show_version,
+        arguments: env::args().skip_while(|a| a != "--").skip(1).collect(),
+    });
 }
