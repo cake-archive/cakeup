@@ -9,6 +9,7 @@ use args;
 #[derive(Debug)]
 pub struct Config {
     pub root: PathBuf,
+    pub tools: PathBuf,
     pub cake_version: Option<String>,
     pub script: Option<PathBuf>,
     pub nuget_version: Option<String>,
@@ -27,8 +28,13 @@ impl Config {
             _ => Some(PathBuf::from(args.script.clone()))
         };
 
+        // Get other paths.
+        let root = get_script_root(&script);
+        let tools = root.join("tools");
+
         return Config {
-            root: get_script_root(&script),
+            root,
+            tools,
             cake_version: create_option(&args.cake),
             script,
             nuget_version: create_option(&args.nuget),
