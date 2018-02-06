@@ -35,10 +35,10 @@ impl Config {
         return Config {
             root,
             tools,
-            cake_version: create_option(&args.cake),
+            cake_version: create_option(&args.cake, None),
             script,
-            nuget_version: create_option(&args.nuget),
-            sdk_version: create_option(&args.sdk),
+            nuget_version: create_option(&args.nuget, Some("v")),
+            sdk_version: create_option(&args.sdk, None),
             use_coreclr: args.coreclr,
             bootstrap: args.bootstrap,
             remaining: args.arguments.clone()
@@ -47,15 +47,21 @@ impl Config {
 
     pub fn should_install_nuget(&self) -> bool {
         return match self.nuget_version {
-            None => false, _ => true
+            None => false, 
+            _ => true
         }
     }
 }
 
-fn create_option(value: &String) -> Option<String> {
+fn create_option(value: &String, prefix: Option<&str>) -> Option<String> {
     return match value.as_ref() {
         "" => None,
-        _ => Some(value.clone())
+        _ => {
+            return match prefix {
+                None => Some(value.clone()),
+                Some(p) => Some(format!("{}{}", p, value.clone()))
+            };
+        }
     };
 }
 
