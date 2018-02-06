@@ -7,7 +7,7 @@ use ::config::Config;
 
 mod help;
 mod version;
-mod install;
+mod run;
 
 pub trait Command {
     fn run(&self, _config: &Config) -> Result<(), io::Error>;
@@ -21,6 +21,6 @@ pub fn version() -> Box<Command> {
     return Box::new(version::VersionCommand { })
 }
 
-pub fn install() -> Box<Command> {
-    return Box::new(install::InstallCommand { })
+pub fn run() -> Box<Command> {
+    return Box::new(run::RunCommand { })
 }

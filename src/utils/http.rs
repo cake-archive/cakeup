@@ -1,10 +1,40 @@
 extern crate curl;
 
+use std::str;
 use std::path::Path;
 use self::curl::easy::Easy;
 use std::io::*;
 use std::fs;
 use std::fs::File;
+
+pub fn get(uri: &String, user_agent: Option<&str>) -> String {
+    let mut handle = Easy::new();
+    handle.follow_location(true).unwrap(); // Follow redirects.
+    handle.url(uri).unwrap(); // Set the URL.
+
+    // Add user agent?
+    let user_agent = Option::from(user_agent).unwrap_or("");
+    if !user_agent.is_empty() {
+        let mut list = curl::easy::List::new();
+        list.append(&format!("User-Agent: {}", user_agent)[..]).unwrap();
+        handle.http_headers(list).unwrap();
+    }
+
+    let mut content: String = String::new();
+    {
+        let mut transfer = handle.transfer();
+        transfer
+            .write_function(|data| {
+                content.push_str(str::from_utf8(data).unwrap());
+                Ok(data.len())
+            })
+            .unwrap();
+
+        transfer.perform().unwrap();
+    }
+
+    return content;
+}
 
 pub fn download(uri: &String, path: &Path) -> Result<()> {
     let mut handle = Easy::new();

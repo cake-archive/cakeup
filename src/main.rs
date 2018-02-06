@@ -2,6 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#[macro_use]
+extern crate serde_derive;
+
 mod args;
 mod config;
 mod commands;
@@ -37,5 +40,5 @@ fn get_command(args: &Arguments) -> Box<Command> {
     if args.version {
         return commands::version();
     }
-    return commands::install();
+    return commands::run();
 }
