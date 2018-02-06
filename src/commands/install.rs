@@ -8,7 +8,8 @@ use commands::Command;
 
 pub struct InstallCommand { }
 impl Command for InstallCommand {
-    fn run(&self, _config: &Config) -> Result<(), io::Error> {
+    fn run(&self, config: &Config) -> Result<(), io::Error> {
+        println!("{:#?}", config);
         return Ok(());
     }
 }

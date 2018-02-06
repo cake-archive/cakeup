@@ -30,10 +30,10 @@ fn main() {
 }
 
 fn get_command(args: &Arguments) -> Box<Command> {
-    if args.show_help {
+    if args.help {
         return commands::help();
     }
-    if args.show_version {
+    if args.version {
         return commands::version();
     }
     return commands::install();

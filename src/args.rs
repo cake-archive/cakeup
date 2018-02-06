@@ -10,14 +10,14 @@ use std::io::{Error, ErrorKind};
 
 #[derive(Debug)]
 pub struct Arguments {
-    pub cake_version: String,
+    pub cake: String,
     pub script: String,
-    pub nuget_version: String,
-    pub sdk_version: String,
-    pub use_coreclr: bool,
+    pub nuget: String,
+    pub sdk: String,
+    pub coreclr: bool,
     pub bootstrap: bool,
-    pub show_help: bool,
-    pub show_version: bool,
+    pub help: bool,
+    pub version: bool,
     pub arguments: Vec<String>,
 }
 
@@ -41,29 +41,29 @@ pub fn parse() -> Result<Arguments, Error> {
     };
 
     // Parse versions.
-    let script = matches.opt_str("script").unwrap_or(String::from("latest"));
-    let cake_version = matches.opt_str("cake").unwrap_or(String::from("latest"));
-    let nuget_version = matches.opt_str("nuget").unwrap_or(String::from(""));
-    let sdk_version = matches.opt_str("sdk").unwrap_or(String::from(""));
-    let use_coreclr = matches.opt_present("coreclr");
-    let show_help = matches.opt_present("help");
-    let show_version = matches.opt_present("version");
+    let script = matches.opt_str("script").unwrap_or(String::from(""));
+    let cake = matches.opt_str("cake").unwrap_or(String::from("latest"));
+    let nuget = matches.opt_str("nuget").unwrap_or(String::from(""));
+    let sdk = matches.opt_str("sdk").unwrap_or(String::from(""));
+    let coreclr = matches.opt_present("coreclr");
+    let help = matches.opt_present("help");
+    let version = matches.opt_present("version");
     let bootstrap = matches.opt_present("bootstrap");
 
     // We currently have no way of knowing what is the latest version of the SDK.
-    if sdk_version == "latest" {
+    if sdk == "latest" {
         return Err(Error::new(ErrorKind::Other, "You must specify a specific SDK version or none at all."));
     }
 
     return Ok(Arguments {
-        cake_version,
+        cake,
         script,
-        nuget_version,
-        sdk_version,
-        use_coreclr,
+        nuget,
+        sdk,
+        coreclr,
         bootstrap,
-        show_help,
-        show_version,
+        help,
+        version,
         arguments: env::args().skip_while(|a| a != "--").skip(1).collect(),
     });
 }
