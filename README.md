@@ -41,13 +41,15 @@ CAKEUP_CORECLR    = "true"
 CAKEUP_BOOTSTRAP  = "true"
 ```
 
-## Example
+## Useage examples
 
-Install CoreCLR version of Cake 0.25.0.
-Also install version 1.1.7 of the dotnet SDK.
+### Example 1
+
+Install CoreCLR version of Cake 0.25.0.  
+Also install version 1.1.7 of the dotnet SDK and bootstrap Cake.
 
 ```
-> ./cakeup.exe --cake=0.24.0 --sdk=1.1.7 --coreclr --bootstrap
+> ./cakeup.exe --cake=0.25.0 --sdk=1.1.7 --coreclr --bootstrap
 
 Creating tools directory...
 Downloading Cake.CoreClr 0.24.0...
@@ -57,4 +59,30 @@ Downloading .NET Core SDK installation script...
 Installing .NET Core SDK...
 Bootstrapping build.cake...
 Done!
+```
+
+### Example 2
+
+Install CLR version of Cake 0.25.0.  
+Also bootstrap Cake and execute the build.cake script.  
+Use diagnostic verbosity when calling Cake and also pass the flag `lol`.
+
+```
+> ./cakeup.exe --cake=0.25.0 --bootstrap --execute -- --verbosity=diagnostic --lol
+
+Creating tools directory...
+Downloading Cake 0.25.0...
+Unzipping binaries...
+Bootstrapping build.cake...
+Module directory does not exist.
+NuGet.config not found.
+Analyzing D:/Source/github/cake-build/cakeup/target/release/build.cake...
+Executing build.cake...
+Module directory does not exist.
+NuGet.config not found.
+Analyzing build script...
+Analyzing D:/Source/github/cake-build/cakeup/target/release/build.cake...
+Processing build script...
+Compiling build script...
+Hello World!
 ```
