@@ -76,10 +76,11 @@ fn execute_bash_script(dotnet_path: &PathBuf, version: &str) -> Result<(), Error
     // Download the installation script.
     let dotnet_script = dotnet_path.join("dotnet-install.sh");
     let dotnet_url = String::from("https://dot.net/v1/dotnet-install.sh");
-    println!("Downloading dotnet installation script...");
+    println!("Downloading .NET Core SDK installation script...");
     http::download(&dotnet_url, &dotnet_script, None)?;
 
     // Execute the script.
+    println!("Installing .NET Core SDK...");
     process::Command::new("bash")
                 .arg("--version").arg(version)
                 .arg("--install-dir").arg(&dotnet_path)
@@ -93,10 +94,11 @@ fn execute_powershell_script(dotnet_path: &PathBuf, version: &str) -> Result<(),
     // Download the installation script.
     let dotnet_script = dotnet_path.join("dotnet-install.ps1");
     let dotnet_url = String::from("https://dot.net/v1/dotnet-install.ps1");
-    println!("Downloading dotnet installation script...");
+    println!("Downloading .NET Core SDK installation script...");
     http::download(&dotnet_url, &dotnet_script, None)?;
 
     // Execute the script.
+    println!("Installing .NET Core SDK...");
     process::Command::new("powershell")
                 .arg("-NoProfile")
                 .arg("-File").arg(dotnet_script)
