@@ -12,6 +12,8 @@ pub struct RunCommand { }
 impl Command for RunCommand {
     fn run(&self, config: &Config) -> Result<(), Error> {
 
+        println!("");
+
         // Create the tools directory.
         match create_tools_directory(&config) {
             Err(e) => return Err(Error::new(ErrorKind::Other, 
@@ -57,6 +59,8 @@ impl Command for RunCommand {
                 _ => {}
             };
         }
+
+        println!("");
 
         return Ok(());
     }
