@@ -6,7 +6,7 @@ use std::io;
 use ::config::Config;
 
 mod help;
-pub mod version;
+mod version;
 mod run;
 
 pub trait Command {
