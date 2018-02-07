@@ -44,12 +44,17 @@ impl Command for RunCommand {
         if config.bootstrap {
             match cake.bootstrap(&config) {
                 Err(e) => return Err(Error::new(ErrorKind::Other, 
-                    format!("An error occured while installing dotnet. {}", e))),
+                    format!("An error occured while bootstrapping Cake script. {}", e))),
                 _ => {}
             };
         }
 
-        // TODO: Execute Cake script.
+        // Execute Cake script.
+        match cake.run(&config) {
+            Err(e) => return Err(Error::new(ErrorKind::Other, 
+                format!("An error occured while running Cake script. {}", e))),
+            _ => {}
+        };
 
         return Ok(());
     }

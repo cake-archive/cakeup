@@ -15,7 +15,7 @@ pub struct Cake {
     pub host: Host
 }
 
-impl Cake {    
+impl Cake {
     pub fn bootstrap(&self, config: &Config) -> Result<(), Error> {
 
         // Is bootstrapping supported?
@@ -42,6 +42,30 @@ impl Cake {
                     .arg(&self.path)
                     .arg(&config.script)
                     .arg("--bootstrap")
+                    .args(&config.remaining)
+                    .status()?;
+            }
+        };
+        return Ok(());
+    }
+
+    pub fn run(&self, config: &Config) -> Result<(), Error> {
+        match self.host {
+            Host::Clr => {
+                process::Command::new(&self.path)
+                    .arg(&config.script)
+                    .args(&config.remaining)
+                    .status()?;
+            }
+            Host::CoreClr | Host::Mono => {
+                let mut host = "dotnet";
+                if self.host == Host::Mono {
+                    host = "mono";
+                }
+
+                process::Command::new(host)
+                    .arg(&self.path)
+                    .arg(&config.script)
                     .args(&config.remaining)
                     .status()?;
             }
