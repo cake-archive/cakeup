@@ -50,11 +50,13 @@ impl Command for RunCommand {
         }
 
         // Execute Cake script.
-        match cake.run(&config) {
-            Err(e) => return Err(Error::new(ErrorKind::Other, 
-                format!("An error occured while running Cake script. {}", e))),
-            _ => {}
-        };
+        if config.execute_script {
+            match cake.run(&config) {
+                Err(e) => return Err(Error::new(ErrorKind::Other, 
+                    format!("An error occured while running Cake script. {}", e))),
+                _ => {}
+            };
+        }
 
         return Ok(());
     }

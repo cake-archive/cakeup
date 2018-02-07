@@ -17,7 +17,8 @@ impl Command for HelpCommand {
         println!("  --nuget  <VERSION>  The version of NuGet to install.");
         println!("  --sdk    <VERSION>  The version of the dotnet SDK to install.");
         println!("  --coreclr           Use CoreCLR version of Cake.");
-        println!("  --bootstrap         Bootstrap Cake modules.");
+        println!("  --bootstrap         Bootstraps Cake modules.");
+        println!("  --execute           Executes the Cake script.");
         println!("  --version           Prints version information.");
         println!("  --help              Prints help information.");
         return Ok(());

@@ -16,6 +16,7 @@ pub struct Config {
     pub sdk_version: Option<String>,
     pub use_coreclr: bool,
     pub bootstrap: bool,
+    pub execute_script: bool,
     pub remaining: Vec<String>,
 }
 
@@ -41,6 +42,7 @@ impl Config {
             sdk_version: create_option(&args.sdk, false),
             use_coreclr: args.coreclr,
             bootstrap: args.bootstrap,
+            execute_script: args.execute,
             remaining: args.arguments.clone()
         };
     }

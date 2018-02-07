@@ -7,6 +7,7 @@ This application will do things like:
 * Install NuGet.exe
 * Install dotnet SDK
 * Bootstrap modules
+* Execute script
 
 ## Usage
 
@@ -20,7 +21,8 @@ Usage: cakeup [--cake=<VERSION>] [--script=<SCRIPT>]
   --nuget  <VERSION>  The version of NuGet to install.
   --sdk    <VERSION>  The version of the dotnet SDK to install.
   --coreclr           Use CoreCLR version of Cake.
-  --bootstrap         Bootstrap Cake modules.
+  --bootstrap         Bootstraps Cake modules.
+  --execute           Executes the Cake script.
   --version           Prints version information.
   --help              Prints help information.
 ```
@@ -34,6 +36,7 @@ CAKEUP_CAKE       = "0.24.0"
 CAKEUP_SCRIPT     = "test.cake"
 CAKEUP_NUGET      = "latest"
 CAKEUP_SDK        = "1.1.7"
+CAKEUP_EXECUTE    = "true"
 CAKEUP_CORECLR    = "true"
 CAKEUP_BOOTSTRAP  = "true"
 ```

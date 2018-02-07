@@ -16,6 +16,7 @@ pub struct Arguments {
     pub sdk: String,
     pub coreclr: bool,
     pub bootstrap: bool,
+    pub execute: bool,
     pub help: bool,
     pub version: bool,
     pub arguments: Vec<String>,
@@ -29,6 +30,7 @@ pub fn parse() -> Result<Arguments, Error> {
     options.optopt("", "sdk", "", "VERSION");
     options.optflag("", "coreclr", "");
     options.optflag("", "bootstrap", "");
+    options.optflag("", "execute", "");
     options.optflag("h", "help", "");
     options.optflag("", "version", "");
 
@@ -47,6 +49,7 @@ pub fn parse() -> Result<Arguments, Error> {
     let sdk = parse_string(&matches, "sdk", "CAKEUP_SDK", ""); 
     let coreclr = parse_bool(&matches, "coreclr", "CAKE_CORECLR");
     let bootstrap = parse_bool(&matches, "bootstrap", "CAKE_BOOTSTRAP");
+    let execute = parse_bool(&matches, "execute", "CAKE_EXECUTE");
     let help = matches.opt_present("help");
     let version = matches.opt_present("version");
 
@@ -62,6 +65,7 @@ pub fn parse() -> Result<Arguments, Error> {
         sdk,
         coreclr,
         bootstrap,
+        execute,
         help,
         version,
         arguments: env::args().skip_while(|a| a != "--").skip(1).collect(),
