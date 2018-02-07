@@ -5,14 +5,12 @@
 use std::io;
 use config::*;
 use commands::Command;
-
-// Embed the version number.
-const VERSION: &'static str = env!("CARGO_PKG_VERSION");
+use utils;
 
 pub struct VersionCommand { }
 impl Command for VersionCommand {
     fn run(&self, _config: &Config) -> Result<(), io::Error> {
-        println!("{}", VERSION);
+        println!("{}", utils::version::VERSION);
         return Ok(());
     }
 }

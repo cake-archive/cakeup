@@ -40,10 +40,18 @@ pub fn get(uri: &String, user_agent: Option<&str>) -> String {
     return content;
 }
 
-pub fn download(uri: &String, path: &Path) -> Result<()> {
+pub fn download(uri: &String, path: &Path, user_agent: Option<&str>) -> Result<()> {
     let mut handle = Easy::new();
     handle.follow_location(true)?; // Follow redirects.
     handle.url(uri)?; // Set the URL.
+
+    // Add user agent?
+    let user_agent = Option::from(user_agent).unwrap_or("");
+    if !user_agent.is_empty() {
+        let mut list = curl::easy::List::new();
+        list.append(&format!("User-Agent: {}", user_agent)[..]).unwrap();
+        handle.http_headers(list).unwrap();
+    }
 
     // Download the file.
     let mut file = File::create(path)?;

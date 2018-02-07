@@ -2,7 +2,5 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-pub mod http;
-pub mod github;
-pub mod zip;
-pub mod version;
+// Embed the version number.
+pub const VERSION: &'static str = env!("CARGO_PKG_VERSION");

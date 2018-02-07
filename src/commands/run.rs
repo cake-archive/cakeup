@@ -5,7 +5,7 @@
 use std::fs;
 use std::io::{Error,ErrorKind};
 use config::*;
-use commands::Command;
+use commands::*;
 use utils::*;
 
 pub struct RunCommand { }
@@ -55,7 +55,7 @@ fn download_nuget(config: &Config) -> Result<(), Error> {
             let version = config.nuget_version.as_ref().unwrap();
             let url = format!("https://dist.nuget.org/win-x86-commandline/{}/nuget.exe", version);
             println!("Downloading nuget ({})...", version);
-            http::download(&url, &file)?;
+            http::download(&url, &file, Some("Cakeup"))?;
         }
     }
     return Ok(());
@@ -88,7 +88,8 @@ fn download_cake(config: &Config) -> Result<(), Error> {
         if !cake_nupkg_path.exists() {
             println!("Downloading {} {}...", flavor, version);
             let url = &format!("https://www.nuget.org/api/v2/package/{}/{}", flavor, version);
-            http::download(&url, &cake_nupkg_path)?;
+            http::download(&url, &cake_nupkg_path, 
+                Some(&format!("Cakeup NuGet Client/{}", ::utils::version::VERSION)[..]))?;
         }
 
         // Nupkg files are just zip files, so unzip it.
