@@ -24,6 +24,8 @@ impl Cake {
             return Ok(());
         }
 
+        println!("Bootstrapping {}...", &config.script.file_name().unwrap().to_str().unwrap());
+
         match self.host {
             Host::Clr => {
                 process::Command::new(&self.path)
@@ -49,7 +51,10 @@ impl Cake {
         return Ok(());
     }
 
-    pub fn run(&self, config: &Config) -> Result<(), Error> {
+    pub fn execute(&self, config: &Config) -> Result<(), Error> {
+
+        println!("Executing {}...", &config.script.file_name().unwrap().to_str().unwrap());
+
         match self.host {
             Host::Clr => {
                 process::Command::new(&self.path)
