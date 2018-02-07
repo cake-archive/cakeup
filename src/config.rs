@@ -38,7 +38,7 @@ impl Config {
             cake_version: create_option(&args.cake, false).unwrap_or("latest".to_string()),
             script,
             nuget_version: create_option(&args.nuget, true),
-            sdk_version: create_option(&args.sdk, true),
+            sdk_version: create_option(&args.sdk, false),
             use_coreclr: args.coreclr,
             bootstrap: args.bootstrap,
             remaining: args.arguments.clone()
@@ -52,11 +52,11 @@ impl Config {
         }
     }
 
-    pub fn get_cake_package_name(&self, version: &String) -> String {
-        if self.use_coreclr {
-            return format!("cake.coreclr.{}.nupkg", version);
+    pub fn should_install_dotnet(&self) -> bool {
+        return match self.sdk_version {
+            None => false, 
+            _ => true
         }
-        return format!("cake.{}.nupkg", version);
     }
 }
 

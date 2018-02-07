@@ -8,6 +8,7 @@ extern crate serde_derive;
 mod args;
 mod config;
 mod commands;
+mod runners;
 mod utils;
 
 use std::process;
