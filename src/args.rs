@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 extern crate getopts;
-use self::getopts::{Options};
+use self::getopts::{Options, Matches};
 
 use std::env;
 use std::io::{Error, ErrorKind};
@@ -41,14 +41,14 @@ pub fn parse() -> Result<Arguments, Error> {
     };
 
     // Parse versions.
-    let script = matches.opt_str("script").unwrap_or(String::from(""));
-    let cake = matches.opt_str("cake").unwrap_or(String::from("latest"));
-    let nuget = matches.opt_str("nuget").unwrap_or(String::from(""));
-    let sdk = matches.opt_str("sdk").unwrap_or(String::from(""));
-    let coreclr = matches.opt_present("coreclr");
+    let script = parse_string(&matches, "script", "CAKEUP_SCRIPT", "");
+    let cake = parse_string(&matches, "cake", "CAKEUP_CAKE", "latest");
+    let nuget = parse_string(&matches, "nuget", "CAKEUP_NUGET", ""); 
+    let sdk = parse_string(&matches, "sdk", "CAKEUP_SDK", ""); 
+    let coreclr = parse_bool(&matches, "coreclr", "CAKE_CORECLR");
+    let bootstrap = parse_bool(&matches, "bootstrap", "CAKE_BOOTSTRAP");
     let help = matches.opt_present("help");
     let version = matches.opt_present("version");
-    let bootstrap = matches.opt_present("bootstrap");
 
     // We currently have no way of knowing what is the latest version of the SDK.
     if sdk == "latest" {
@@ -66,4 +66,24 @@ pub fn parse() -> Result<Arguments, Error> {
         version,
         arguments: env::args().skip_while(|a| a != "--").skip(1).collect(),
     });
+}
+
+fn parse_string(matches: &Matches, arg_name: &str, env_name: &str, default: &str) -> String {
+    return match matches.opt_str(arg_name) {
+        None => String::from(env::var(env_name)
+                    .unwrap_or(String::from(default))),
+        Some(v) => {
+            match &v[..] {
+                "" => String::from(default),
+                _ => String::from(v)
+            }
+        }
+    };
+}
+
+fn parse_bool(matches: &Matches, arg_name: &str, env_name: &str) -> bool {
+    if matches.opt_present(arg_name) {
+        return true;
+    }
+    return String::from(env::var(env_name).unwrap_or(String::from("false"))) == "true";;
 }
