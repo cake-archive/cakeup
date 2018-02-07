@@ -85,7 +85,7 @@ fn execute_bash_script(dotnet_path: &PathBuf, version: &str) -> Result<(), Error
                 .arg("--version").arg(version)
                 .arg("--install-dir").arg(&dotnet_path)
                 .arg("--no-path").arg(dotnet_script)
-                .status()?;
+                .output()?;
 
     return Ok(());
 }
@@ -105,7 +105,7 @@ fn execute_powershell_script(dotnet_path: &PathBuf, version: &str) -> Result<(),
                 .arg("-Channel").arg("current")
                 .arg("-Version").arg(version)
                 .arg("-InstallDir").arg(&dotnet_path)
-                .status()?;
+                .output()?;
 
     return Ok(());
 }
