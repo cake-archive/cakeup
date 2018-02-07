@@ -11,7 +11,7 @@ pub struct Config {
     pub root: PathBuf,
     pub tools: PathBuf,
     pub cake_version: String,
-    pub script: Option<PathBuf>,
+    pub script: PathBuf,
     pub nuget_version: Option<String>,
     pub sdk_version: Option<String>,
     pub use_coreclr: bool,
@@ -24,8 +24,8 @@ impl Config {
 
         // Get the absolute script path.
         let script = match args.script.as_ref() {
-            "" => Some(env::current_dir().unwrap().join("build.cake")),
-            _ => Some(PathBuf::from(args.script.clone()))
+            "" => env::current_dir().unwrap().join("build.cake"),
+            _ => PathBuf::from(args.script.clone())
         };
 
         // Get other paths.
@@ -73,14 +73,9 @@ fn create_option(value: &String, prefix: bool) -> Option<String> {
     };
 }
 
-fn get_script_root(script: &Option<PathBuf>) -> PathBuf {
-    match script {
-        &None => return env::current_dir().unwrap(),
-        &Some(ref path) => {
-            if path.is_relative() {
-                return env::current_dir().unwrap();
-            }
-            return path.parent().unwrap().to_path_buf();
-        }
-    };
+fn get_script_root(script: &PathBuf) -> PathBuf {
+    if script.is_relative() {
+        return env::current_dir().unwrap();
+    }
+    return script.parent().unwrap().to_path_buf();
 }

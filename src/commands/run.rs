@@ -27,10 +27,10 @@ impl Command for RunCommand {
         };
 
         // Download Cake.
-        match cake::install(&config) {
+        let cake = match cake::install(&config) {
+            Ok(c) => c,
             Err(e) => return Err(Error::new(ErrorKind::Other, 
-                format!("An error occured while downloading Cake. {}", e))),
-            _ => {}
+                format!("An error occured while downloading Cake. {}", e)))
         };
 
         // Install dotnet.
@@ -40,7 +40,15 @@ impl Command for RunCommand {
             _ => {}
         };
 
-        // TODO: Bootstrap Cake?
+        // Bootstrap Cake?
+        if config.bootstrap {
+            match cake.bootstrap(&config) {
+                Err(e) => return Err(Error::new(ErrorKind::Other, 
+                    format!("An error occured while installing dotnet. {}", e))),
+                _ => {}
+            };
+        }
+
         // TODO: Execute Cake script.
 
         return Ok(());

@@ -70,8 +70,7 @@ pub fn parse() -> Result<Arguments, Error> {
 
 fn parse_string(matches: &Matches, arg_name: &str, env_name: &str, default: &str) -> String {
     return match matches.opt_str(arg_name) {
-        None => String::from(env::var(env_name)
-                    .unwrap_or(String::from(default))),
+        None => String::from(env::var(env_name).unwrap_or(String::from(default))),
         Some(v) => {
             match &v[..] {
                 "" => String::from(default),

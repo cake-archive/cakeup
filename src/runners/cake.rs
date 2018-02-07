@@ -3,10 +3,61 @@
 // See the LICENSE file in the project root for more information.
 
 use std::io::{Error};
+use std::path::PathBuf;
+use std::process;
+use semver::Version;
 use config::*;
 use utils::*;
 
-pub fn install(config: &Config) -> Result<(), Error> {
+pub struct Cake {
+    pub path: PathBuf,
+    pub version: Version,
+    pub host: Host
+}
+
+impl Cake {    
+    pub fn bootstrap(&self, config: &Config) -> Result<(), Error> {
+
+        // Is bootstrapping supported?
+        if self.version < Version::parse("0.24.0").unwrap() {
+            println!("Warning: Bootstrapping requires at lest verison 0.24.0 of Cake.");
+            return Ok(());
+        }
+
+        match self.host {
+            Host::Clr => {
+                process::Command::new(&self.path)
+                    .arg(&config.script)
+                    .arg("--bootstrap")
+                    .args(&config.remaining)
+                    .status()?;
+            }
+            Host::CoreClr | Host::Mono => {
+                let mut host = "dotnet";
+                if self.host == Host::Mono {
+                    host = "mono";
+                }
+
+                process::Command::new(host)
+                    .arg(&self.path)
+                    .arg(&config.script)
+                    .arg("--bootstrap")
+                    .args(&config.remaining)
+                    .status()?;
+            }
+        };
+        return Ok(());
+    }
+}
+
+#[derive(PartialEq)]
+pub enum Host {
+    Clr,
+    CoreClr,
+    Mono
+}
+
+pub fn install(config: &Config) -> Result<Cake, Error> {
 
     // Get the version we're going to use.
     let mut version = config.cake_version.clone();
@@ -39,7 +90,28 @@ pub fn install(config: &Config) -> Result<(), Error> {
         zip::unzip(&cake_nupkg_path, &cake_folder_path)?;
     }
 
-    return Ok(());
+    // What host should we use?
+    let mut host = Host::Clr;
+    if config.use_coreclr {
+        host = Host::CoreClr;
+    } else {
+        // Running on OSX/Linux/BSD?
+        if cfg!(unix) {
+            host = Host::Mono;
+        }
+    }
+
+    // Get the filename
+    let mut cake_filename = "Cake.exe";
+    if config.use_coreclr {
+        cake_filename = "Cake.dll";
+    }
+
+    return Ok(Cake {
+        path: cake_folder_path.join(&cake_filename),
+        version: Version::parse(&version).unwrap(),
+        host: host
+    });
 }
 
 fn get_cake_package_name(config: &Config, version: &String) -> String {
