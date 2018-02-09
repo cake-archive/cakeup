@@ -110,7 +110,7 @@ pub fn install(config: &Config) -> Result<Cake, Error> {
         if !cake_nupkg_path.exists() {
             println!("Downloading {0} {1}...", flavor, version);
             let url = &format!("https://www.nuget.org/api/v2/package/{0}/{1}", flavor, version);
-            http::download(&url, &cake_nupkg_path, 
+            http::download(&url, &cake_nupkg_path,
                 Some(&format!("Cakeup NuGet Client/{0}", ::utils::version::VERSION)[..]))?;
         }
 
@@ -131,10 +131,11 @@ pub fn install(config: &Config) -> Result<Cake, Error> {
     }
 
     // Get the filename
-    let mut cake_filename = "Cake.exe";
-    if config.use_coreclr {
-        cake_filename = "Cake.dll";
-    }
+    let cake_filename = if config.use_coreclr {
+        "Cake.dll"
+    } else {
+        "Cake.exe"
+    };
 
     return Ok(Cake {
         path: cake_folder_path.join(&cake_filename),

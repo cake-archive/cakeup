@@ -49,14 +49,14 @@ impl Config {
 
     pub fn should_install_nuget(&self) -> bool {
         return match self.nuget_version {
-            None => false, 
+            None => false,
             _ => true
         }
     }
 
     pub fn should_install_dotnet(&self) -> bool {
         return match self.sdk_version {
-            None => false, 
+            None => false,
             _ => true
         }
     }
