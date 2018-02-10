@@ -1,6 +1,6 @@
 # cakeup
 
-A binary bootstrapper for Cake.  
+A prototype binary bootstrapper for Cake.  
 This application will do things like:  
 
 * Install Cake
@@ -8,6 +8,16 @@ This application will do things like:
 * Install dotnet SDK
 * Bootstrap modules
 * Execute script
+
+## Disclaimer
+
+**This is a prototype, so please do not use cakeup yet since we might
+simply remove this repository at any point in time until we've decided 
+to keep this around or not.**
+
+## Pull requests
+
+**Pull requests are currently NOT accepted for this project.**
 
 ## Usage
 
