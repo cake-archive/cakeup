@@ -28,9 +28,9 @@ pub fn parse() -> Result<Arguments, Error> {
     options.optopt("", "script", "", "SCRIPT");
     options.optopt("", "nuget", "", "VERSION");
     options.optopt("", "sdk", "", "VERSION");
-    options.optflag("", "coreclr", "");
-    options.optflag("", "bootstrap", "");
-    options.optflag("", "execute", "");
+    options.optflagopt("", "coreclr", "", "");
+    options.optflagopt("", "bootstrap", "", "");
+    options.optflagopt("", "execute", "", "");
     options.optflag("h", "help", "");
     options.optflag("", "version", "");
 
@@ -43,10 +43,10 @@ pub fn parse() -> Result<Arguments, Error> {
     };
 
     // Parse versions.
-    let script = parse_string(&matches, "script", "CAKEUP_SCRIPT", "");
+    let script = parse_string(&matches, "script", "CAKEUP_SCRIPT", "build.cake");
     let cake = parse_string(&matches, "cake", "CAKEUP_CAKE", "latest");
-    let nuget = parse_string(&matches, "nuget", "CAKEUP_NUGET", ""); 
-    let sdk = parse_string(&matches, "sdk", "CAKEUP_SDK", ""); 
+    let nuget = parse_string(&matches, "nuget", "CAKEUP_NUGET", "none"); 
+    let sdk = parse_string(&matches, "sdk", "CAKEUP_SDK", "none"); 
     let coreclr = parse_bool(&matches, "coreclr", "CAKE_CORECLR");
     let bootstrap = parse_bool(&matches, "bootstrap", "CAKE_BOOTSTRAP");
     let execute = parse_bool(&matches, "execute", "CAKE_EXECUTE");
@@ -86,7 +86,8 @@ fn parse_string(matches: &Matches, arg_name: &str, env_name: &str, default: &str
 
 fn parse_bool(matches: &Matches, arg_name: &str, env_name: &str) -> bool {
     if matches.opt_present(arg_name) {
-        return true;
+        let value = parse_string(matches, arg_name, env_name, "true");
+        return value == "true";
     }
     return String::from(env::var(env_name).unwrap_or(String::from("false"))) == "true";;
 }

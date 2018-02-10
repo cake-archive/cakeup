@@ -65,6 +65,7 @@ impl Config {
 fn create_option(value: &String, prefix: bool) -> Option<String> {
     return match value.as_ref() {
         "" => None,
+        "none" => None,
         "latest" => Some("latest".to_string()),
         _ => {
             if prefix {
