@@ -27,10 +27,10 @@ export DOTNET_CLI_TELEMETRY_OPTOUT=1
 "$script_dir/.dotnet/dotnet" --info
 
 # Download and install Cake
-cake_exe=$tools_dir/Cake.$cake_version/Cake.exe
+cake_exe=$tools_dir/Cake.$cake_version/Cake.dll
 if [ ! -f "$cake_exe" ]; then
     echo "Installing Cake $cake_version..."
-    curl -Lsfo Cake.zip "https://www.nuget.org/api/v2/package/Cake/$cake_version" && unzip -q Cake.zip -d "$tools_dir/Cake.$cake_version" && rm -f Cake.zip
+    curl -Lsfo Cake.zip "https://www.nuget.org/api/v2/package/Cake.CoreClr/$cake_version" && unzip -q Cake.zip -d "$tools_dir/Cake.$cake_version" && rm -f Cake.zip
     if [ $? -ne 0 ]; then
         echo "An error occured while installing Cake."
         exit 1
@@ -38,4 +38,4 @@ if [ ! -f "$cake_exe" ]; then
 fi
 
 # Start Cake
-(exec "$cake_exe" --bootstrap) && (exec "$cake_exe" "$@")
+(exec ./.dotnet/dotnet "$cake_exe" --bootstrap) && (exec ./.dotnet/dotnet "$cake_exe" "$@")
