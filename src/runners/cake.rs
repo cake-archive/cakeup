@@ -24,12 +24,11 @@ impl Cake {
             return Ok(());
         }
 
-        println!("Bootstrapping {}...", &config.script.file_name().unwrap().to_str().unwrap());
+        println!("Bootstrapping...");
 
         match self.host {
             Host::Clr => {
                 process::Command::new(&self.path)
-                    .arg(&config.script)
                     .arg("--bootstrap")
                     .args(&config.remaining)
                     .status()?;
@@ -42,7 +41,6 @@ impl Cake {
 
                 process::Command::new(host)
                     .arg(&self.path)
-                    .arg(&config.script)
                     .arg("--bootstrap")
                     .args(&config.remaining)
                     .status()?;
@@ -53,12 +51,11 @@ impl Cake {
 
     pub fn execute(&self, config: &Config) -> Result<(), Error> {
 
-        println!("Executing {}...", &config.script.file_name().unwrap().to_str().unwrap());
+        println!("Executing...");
 
         match self.host {
             Host::Clr => {
                 process::Command::new(&self.path)
-                    .arg(&config.script)
                     .args(&config.remaining)
                     .status()?;
             }
@@ -70,7 +67,6 @@ impl Cake {
 
                 process::Command::new(host)
                     .arg(&self.path)
-                    .arg(&config.script)
                     .args(&config.remaining)
                     .status()?;
             }

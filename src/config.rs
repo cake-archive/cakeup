@@ -11,7 +11,6 @@ pub struct Config {
     pub root: PathBuf,
     pub tools: PathBuf,
     pub cake_version: String,
-    pub script: PathBuf,
     pub nuget_version: Option<String>,
     pub sdk_version: Option<String>,
     pub use_coreclr: bool,
@@ -23,21 +22,14 @@ pub struct Config {
 impl Config {
     pub fn new(args: &args::Arguments) -> Self {
 
-        // Get the absolute script path.
-        let script = match args.script.as_ref() {
-            "" => env::current_dir().unwrap().join("build.cake"),
-            _ => PathBuf::from(args.script.clone())
-        };
-
         // Get other paths.
-        let root = get_script_root(&script);
+        let root = env::current_dir().unwrap();
         let tools = root.join("tools");
 
         return Config {
             root,
             tools,
             cake_version: create_option(&args.cake, false).unwrap_or("latest".to_string()),
-            script,
             nuget_version: create_option(&args.nuget, true),
             sdk_version: create_option(&args.sdk, false),
             use_coreclr: args.coreclr,
@@ -74,11 +66,4 @@ fn create_option(value: &String, prefix: bool) -> Option<String> {
             return Some(value.clone());
         }
     };
-}
-
-fn get_script_root(script: &PathBuf) -> PathBuf {
-    if script.is_relative() {
-        return env::current_dir().unwrap();
-    }
-    return script.parent().unwrap().to_path_buf();
 }

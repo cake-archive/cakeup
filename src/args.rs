@@ -11,7 +11,6 @@ use std::io::{Error, ErrorKind};
 #[derive(Debug)]
 pub struct Arguments {
     pub cake: String,
-    pub script: String,
     pub nuget: String,
     pub sdk: String,
     pub coreclr: bool,
@@ -25,7 +24,6 @@ pub struct Arguments {
 pub fn parse() -> Result<Arguments, Error> {
     let mut options = Options::new();
     options.optopt("", "cake", "", "VERSION");
-    options.optopt("", "script", "", "SCRIPT");
     options.optopt("", "nuget", "", "VERSION");
     options.optopt("", "sdk", "", "VERSION");
     options.optflagopt("", "coreclr", "", "");
@@ -43,7 +41,6 @@ pub fn parse() -> Result<Arguments, Error> {
     };
 
     // Parse versions.
-    let script = parse_string(&matches, "script", "CAKEUP_SCRIPT", "build.cake");
     let cake = parse_string(&matches, "cake", "CAKEUP_CAKE", "latest");
     let nuget = parse_string(&matches, "nuget", "CAKEUP_NUGET", "none");
     let sdk = parse_string(&matches, "sdk", "CAKEUP_SDK", "none");
@@ -60,7 +57,6 @@ pub fn parse() -> Result<Arguments, Error> {
 
     return Ok(Arguments {
         cake,
-        script,
         nuget,
         sdk,
         coreclr,
