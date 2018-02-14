@@ -74,8 +74,8 @@ Task("Deploy")
     var path = File($"./target/release/{filename}");
 
     var remoteFilename = platform == "windows" 
-        ? $"cakeup-{platform}-x86_64-v{version}.exe"
-        : $"cakeup-{platform}-x86_64-v{version}";
+        ? $"cakeup-x86_64-v{version}.exe"
+        : $"cakeup-x86_64-v{version}";
 
     Information("Uploading executable to Azure ({0}/{1})...", platform, remoteFilename);
     using(var stream = context.FileSystem.GetFile(path).OpenRead())
