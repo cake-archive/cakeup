@@ -81,11 +81,11 @@ fn execute_bash_script(dotnet_path: &PathBuf, version: &str) -> Result<(), Error
 
     // Execute the script.
     println!("Installing .NET Core SDK...");
-    process::Command::new("bash")
+    process::Command::new(&dotnet_script)
                 .arg("--version").arg(version)
                 .arg("--install-dir").arg(&dotnet_path)
-                .arg("--no-path").arg(dotnet_script)
-                .output()?;
+                .arg("--no-path")
+                .status()?;
 
     return Ok(());
 }
