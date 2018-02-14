@@ -68,11 +68,14 @@ Task("Deploy")
         throw new InvalidOperationException("Could not resolve Azure connection string.");
     }
 
-    var path = File("./target/release/cakeup.exe");
-
     var platform = GetPlatformName(context);
+
     var filename = platform == "windows" ? "cakeup.exe" : "cakeup";
-    var remoteFilename = $"cakeup-x86_64-v{version}.exe";
+    var path = File($"./target/release/{filename}");
+
+    var remoteFilename = platform == "windows" 
+        ? $"cakeup-{platform}-x86_64-v{version}.exe"
+        : $"cakeup-{platform}-x86_64-v{version}";
 
     Information("Uploading executable to Azure ({0}/{1})...", platform, remoteFilename);
     using(var stream = context.FileSystem.GetFile(path).OpenRead())
