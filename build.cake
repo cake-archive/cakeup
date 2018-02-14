@@ -42,7 +42,7 @@ Task("Patch-Version")
     .WithCriteria(() => deploy)
     .Does(() => 
 {
-    var path = File("./cargo.toml").Path;
+    var path = File("./Cargo.toml").Path;
     var input = System.IO.File.ReadAllText(path.FullPath);
     var result = new Regex("version = \"[0-9]\\.[0-9]\\.[0-9]\"").Replace(input, $"version = \"{version}\"");
     System.IO.File.WriteAllText(path.FullPath, result);
