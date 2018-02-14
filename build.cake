@@ -3,6 +3,8 @@
 #load "./scripts/git.cake"
 #load "./scripts/utils.cake"
 
+using System.Text.RegularExpressions;
+
 ///////////////////////////////////////////////////////////////////////////////
 // ARGUMENTS
 ///////////////////////////////////////////////////////////////////////////////
@@ -26,7 +28,7 @@ Setup(context => {
 
     var branch = GitUtils.GetBranch(context);
     if(branch.Equals("master", StringComparison.OrdinalIgnoreCase)) {
-        deploy = true;
+        deploy = !BuildSystem.IsLocalBuild;
     }
 
     Information("Version: {0}", version);
@@ -36,7 +38,18 @@ Setup(context => {
 // TASKS
 ///////////////////////////////////////////////////////////////////////////////
 
+Task("Patch-Version")
+    .WithCriteria(() => deploy)
+    .Does(() => 
+{
+    var path = File("./cargo.toml").Path;
+    var input = System.IO.File.ReadAllText(path.FullPath);
+    var result = new Regex("version = \"[0-9]\\.[0-9]\\.[0-9]\"").Replace(input, $"version = \"{version}\"");
+    System.IO.File.WriteAllText(path.FullPath, result);
+});
+
 Task("Build")
+    .IsDependentOn("Patch-Version")
     .Does(c => 
 {
     // Build Cakeup.
