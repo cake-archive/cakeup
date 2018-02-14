@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 cake_version="0.25.0";
 nuget_version="none";
-dotnet_version="1.1.7";
+dotnet_version="none";
 coreclr=true;
 bootstrap=false;
 
