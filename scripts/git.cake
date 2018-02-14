@@ -2,9 +2,12 @@ public static class GitUtils
 {
     public static string GetBranch(ICakeContext context)
     {
-        var ci = context.BuildSystem().TravisCI;
-        if(ci.IsRunningOnTravisCI) {
-            return ci.Environment.Build.Branch;
+        var ci = context.BuildSystem();
+        if(ci.TravisCI.IsRunningOnTravisCI) {
+            return ci.TravisCI.Environment.Build.Branch;
+        }
+        if(ci.AppVeyor.IsRunningOnAppVeyor) {
+            return ci.AppVeyor.Environment.Repository.Branch;
         }
 
         using(var process = context.StartAndReturnProcess("git", new ProcessSettings 
