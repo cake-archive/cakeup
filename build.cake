@@ -23,9 +23,16 @@ var deploy = false;
 // SETUP/TEARDOWN
 ///////////////////////////////////////////////////////////////////////////////
 
-Setup(context => {
+Setup(context => 
+{
+    // Get the version.
     version = CakeVersion.Calculate(context);
+    if(BuildSystem.AppVeyor.IsRunningOnAppVeyor) {
+        // Update the AppVeyor version number.
+        BuildSystem.AppVeyor.UpdateBuildVersion(version);
+    }
 
+    // Determine if we should deploy or not.
     var branch = GitUtils.GetBranch(context);
     if(branch.Equals("master", StringComparison.OrdinalIgnoreCase)) {
         deploy = !BuildSystem.IsLocalBuild;
