@@ -16,50 +16,50 @@ impl Command for RunCommand {
 
         // Create the tools directory.
         match create_tools_directory(&config) {
-            Err(e) => return Err(Error::new(ErrorKind::Other, 
+            Err(e) => return Err(Error::new(ErrorKind::Other,
                 format!("An error occured while creating the tools folder. {}", e))),
             _ => {}
         };
 
         // Download NuGet.
         match nuget::install(&config) {
-            Err(e) => return Err(Error::new(ErrorKind::Other, 
+            Err(e) => return Err(Error::new(ErrorKind::Other,
                 format!("An error occured while installing NuGet. {}", e))),
             _ => {}
         };
 
-        // Download Cake.
-        let cake = match cake::install(&config) {
-            Ok(c) => c,
-            Err(e) => return Err(Error::new(ErrorKind::Other, 
-                format!("An error occured while downloading Cake. {}", e)))
-        };
-
         // Install dotnet.
         match dotnet::install(&config) {
-            Err(e) => return Err(Error::new(ErrorKind::Other, 
+            Err(e) => return Err(Error::new(ErrorKind::Other,
                 format!("An error occured while installing dotnet. {}", e))),
             _ => {}
         };
 
-        // Bootstrap Cake?
-        if config.bootstrap {
-            match cake.bootstrap(&config) {
-                Err(e) => return Err(Error::new(ErrorKind::Other, 
-                    format!("An error occured while bootstrapping Cake script. {}", e))),
-                _ => {}
+        // Download Cake.
+        if cake::should_install_cake(config) {
+            let cake = match cake::install(&config) {
+                Ok(c) => c,
+                Err(e) => return Err(Error::new(ErrorKind::Other,
+                    format!("An error occured while downloading Cake. {}", e)))
             };
-        }
 
-        // Execute Cake script.
-        if config.execute_script {
-            match cake.execute(&config) {
-                Err(e) => return Err(Error::new(ErrorKind::Other, 
-                    format!("An error occured while running Cake script. {}", e))),
-                _ => {}
-            };
-        } else {
-            println!("Done!");
+            // Bootstrap Cake?
+            if config.bootstrap {
+                match cake.bootstrap(&config) {
+                    Err(e) => return Err(Error::new(ErrorKind::Other,
+                        format!("An error occured while bootstrapping Cake script. {}", e))),
+                    _ => {}
+                };
+            }
+
+            // Execute Cake script.
+            if config.execute_script {
+                match cake.execute(&config) {
+                    Err(e) => return Err(Error::new(ErrorKind::Other,
+                        format!("An error occured while running Cake script. {}", e))),
+                    _ => {}
+                };
+            }
         }
 
         return Ok(());

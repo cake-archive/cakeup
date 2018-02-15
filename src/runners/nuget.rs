@@ -7,7 +7,7 @@ use config::*;
 use utils::*;
 
 pub fn install(config: &Config) -> Result<(), Error> {
-    if config.should_install_nuget() {
+    if should_install_nuget(config) {
         let file = config.tools.join("nuget.exe");
         if !file.exists() {
             let version = config.nuget_version.as_ref().unwrap();
@@ -17,4 +17,11 @@ pub fn install(config: &Config) -> Result<(), Error> {
         }
     }
     return Ok(());
+}
+
+pub fn should_install_nuget(config: &Config) -> bool {
+    return match config.nuget_version {
+        None => false,
+        _ => true
+    }
 }

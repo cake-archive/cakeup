@@ -41,7 +41,7 @@ pub fn parse() -> Result<Arguments, Error> {
     };
 
     // Parse versions.
-    let cake = parse_string(&matches, "cake", "CAKEUP_CAKE", "latest");
+    let cake = parse_string(&matches, "cake", "CAKEUP_CAKE", "none");
     let nuget = parse_string(&matches, "nuget", "CAKEUP_NUGET", "none");
     let sdk = parse_string(&matches, "sdk", "CAKEUP_SDK", "none");
     let coreclr = parse_bool(&matches, "coreclr", "CAKE_CORECLR");

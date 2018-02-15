@@ -13,7 +13,7 @@ use utils::*;
 
 pub fn install(config: &Config) -> Result<(), Error> {
 
-    if !config.should_install_dotnet() {
+    if !should_install_dotnet(config) {
         return Ok(());
     }
 
@@ -108,4 +108,11 @@ fn execute_powershell_script(dotnet_path: &PathBuf, version: &str) -> Result<(),
                 .output()?;
 
     return Ok(());
+}
+
+fn should_install_dotnet(config: &Config) -> bool {
+    return match config.sdk_version {
+        None => false,
+        _ => true
+    }
 }

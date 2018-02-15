@@ -15,6 +15,13 @@ pub struct Cake {
     pub host: Host,
 }
 
+#[derive(PartialEq)]
+pub enum Host {
+    Clr,
+    CoreClr,
+    Mono,
+}
+
 impl Cake {
     pub fn bootstrap(&self, config: &Config) -> Result<(), Error> {
         // Is bootstrapping supported?
@@ -89,16 +96,10 @@ impl Cake {
     }
 }
 
-#[derive(PartialEq)]
-pub enum Host {
-    Clr,
-    CoreClr,
-    Mono,
-}
-
 pub fn install(config: &Config) -> Result<Cake, Error> {
+
     // Get the version we're going to use.
-    let mut version = config.cake_version.clone();
+    let mut version = String::from(&config.cake_version.as_ref().unwrap()[..]);
     if version == "latest" {
         println!("Figuring out what the latest release of Cake is...");
         let release = github::get_latest_release("cake-build", "cake")?;
@@ -158,6 +159,13 @@ pub fn install(config: &Config) -> Result<Cake, Error> {
         version: Version::parse(&version).unwrap(),
         host: host,
     });
+}
+
+pub fn should_install_cake(config: &Config) -> bool {
+    return match config.cake_version {
+        None => false,
+        _ => true
+    }
 }
 
 fn get_cake_package_name(config: &Config, version: &String) -> String {

@@ -10,7 +10,7 @@ use args;
 pub struct Config {
     pub root: PathBuf,
     pub tools: PathBuf,
-    pub cake_version: String,
+    pub cake_version: Option<String>,
     pub nuget_version: Option<String>,
     pub sdk_version: Option<String>,
     pub use_coreclr: bool,
@@ -29,7 +29,7 @@ impl Config {
         return Config {
             root,
             tools,
-            cake_version: create_option(&args.cake, false).unwrap_or("latest".to_string()),
+            cake_version: create_option(&args.cake, false),
             nuget_version: create_option(&args.nuget, true),
             sdk_version: create_option(&args.sdk, false),
             use_coreclr: args.coreclr,
@@ -37,20 +37,6 @@ impl Config {
             execute_script: args.execute,
             remaining: args.arguments.clone()
         };
-    }
-
-    pub fn should_install_nuget(&self) -> bool {
-        return match self.nuget_version {
-            None => false,
-            _ => true
-        }
-    }
-
-    pub fn should_install_dotnet(&self) -> bool {
-        return match self.sdk_version {
-            None => false,
-            _ => true
-        }
     }
 }
 
