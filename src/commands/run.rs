@@ -21,6 +21,13 @@ impl Command for RunCommand {
             _ => {}
         };
 
+        // Install Cake.
+        let cake = match cake::install(&config) {
+            Ok(c) => c,
+            Err(e) => return Err(Error::new(ErrorKind::Other,
+                format!("An error occured while downloading Cake. {}", e)))
+        };
+
         // NuGet
         match nuget::install(&config) {
             Err(e) => return Err(Error::new(ErrorKind::Other,
@@ -35,15 +42,9 @@ impl Command for RunCommand {
             _ => {}
         };
 
-        // Cake
-        if cake::should_install_cake(config) {
-
-            // Install Cake.
-            let cake = match cake::install(&config) {
-                Ok(c) => c,
-                Err(e) => return Err(Error::new(ErrorKind::Other,
-                    format!("An error occured while downloading Cake. {}", e)))
-            };
+        // Was Cake installed?
+        if cake.is_some() {
+            let cake = cake.unwrap();
 
             // Bootstrap Cake?
             if config.bootstrap {
@@ -54,7 +55,7 @@ impl Command for RunCommand {
                 };
             }
 
-            // Execute Cake script.
+            // Execute Cake script?
             if config.execute_script {
                 match cake.execute(&config) {
                     Err(e) => return Err(Error::new(ErrorKind::Other,

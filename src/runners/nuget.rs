@@ -12,7 +12,7 @@ pub fn install(config: &Config) -> Result<(), Error> {
         if !file.exists() {
             let version = config.nuget_version.as_ref().unwrap();
             let url = format!("https://dist.nuget.org/win-x86-commandline/{}/nuget.exe", version);
-            println!("Downloading nuget ({})...", version);
+            println!("Downloading {}...", url);
             http::download(&url, &file, Some("Cakeup"))?;
         }
     }

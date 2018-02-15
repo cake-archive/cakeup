@@ -11,14 +11,15 @@ impl Command for HelpCommand {
     fn run(&self, _config: &Config) -> Result<(), io::Error> {
         println!("Usage: cakeup [--cake=<VERSION>] [--script=<SCRIPT>]");
         println!("              [--nuget=<VERSION>] [--sdk=<VERSION>]");
-        println!("              [--coreclr] [--bootstrap] [-- ARGUMENTS]\n");
+        println!("              [--coreclr] [--bootstrap] [--execute]");
+        println!("              [-- ARGUMENTS]\n");
+        println!("  --coreclr           Use CoreCLR version of Cake.");
+        println!("  --bootstrap         Bootstraps Cake modules.");
+        println!("  --execute           Executes the Cake script.\n");
         println!("  --cake   <VERSION>  The version of Cake to install.");
         println!("  --script <SCRIPT>   The script to execute.");
         println!("  --nuget  <VERSION>  The version of NuGet to install.");
-        println!("  --sdk    <VERSION>  The version of the dotnet SDK to install.");
-        println!("  --coreclr           Use CoreCLR version of Cake.");
-        println!("  --bootstrap         Bootstraps Cake modules.");
-        println!("  --execute           Executes the Cake script.");
+        println!("  --sdk    <VERSION>  The version of the dotnet SDK to install.\n");
         println!("  --version           Prints version information.");
         println!("  --help              Prints help information.");
         return Ok(());

@@ -36,11 +36,7 @@ pub fn install(config: &Config) -> Result<(), Error> {
     }
 
     // Execute the installation script.
-    if cfg!(unix) {
-        execute_shell_script(&dotnet_path, &sdk_version)?;
-    } else {
-        execute_powershell_script(&dotnet_path, &sdk_version)?;
-    }
+    execute_install_script(&dotnet_path, &sdk_version)?;
 
     // Set environment variables.
     set_environment_variables(&dotnet_path);
@@ -51,7 +47,6 @@ pub fn install(config: &Config) -> Result<(), Error> {
     if installed_version != sdk_version {
         return Err(Error::new(ErrorKind::Other, "It looks like dotnet wasn't properly installed."));
     }
-    println!("Installation OK.");
 
     return Ok(());
 }
@@ -80,11 +75,12 @@ fn set_environment_variables(dotnet_path: &PathBuf) {
     env::set_var("DOTNET_CLI_TELEMETRY_OPTOUT", "1");
 }
 
-fn execute_shell_script(dotnet_path: &PathBuf, version: &str) -> Result<(), Error> {
+#[cfg(target_os = "linux")]
+fn execute_install_script(dotnet_path: &PathBuf, version: &str) -> Result<(), Error> {
     // Download the installation script.
     let dotnet_script = dotnet_path.join("dotnet-install.sh");
     let dotnet_url = String::from("https://dot.net/v1/dotnet-install.sh");
-    println!("Downloading .NET Core SDK installation script...");
+    println!("Downloading https://dot.net/v1/dotnet-install.sh...");
     http::download(&dotnet_url, &dotnet_script, None)?;
 
     // Execute the script.
@@ -98,11 +94,12 @@ fn execute_shell_script(dotnet_path: &PathBuf, version: &str) -> Result<(), Erro
     return Ok(());
 }
 
-fn execute_powershell_script(dotnet_path: &PathBuf, version: &str) -> Result<(), Error> {
+#[cfg(not(target_os = "linux"))]
+fn execute_install_script(dotnet_path: &PathBuf, version: &str) -> Result<(), Error> {
     // Download the installation script.
     let dotnet_script = dotnet_path.join("dotnet-install.ps1");
     let dotnet_url = String::from("https://dot.net/v1/dotnet-install.ps1");
-    println!("Downloading .NET Core SDK installation script...");
+    println!("Downloading https://dot.net/v1/dotnet-install.ps1...");
     http::download(&dotnet_url, &dotnet_script, None)?;
 
     // Execute the script.

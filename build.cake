@@ -82,26 +82,19 @@ Task("Deploy")
     .IsDependentOn("Build")
     .Does(async context => 
 {
-    var connection = EnvironmentVariable("CAKEUP_AZURE_STORAGE");
-    if(string.IsNullOrWhiteSpace(connection)) 
-    {
-        throw new InvalidOperationException("Could not resolve Azure connection string.");
-    }
-
     var platform = GetPlatformName(context);
-
     var filename = platform == "windows" ? "cakeup.exe" : "cakeup";
     var path = File($"./target/release/{filename}");
 
-    var remoteFilename = platform == "windows" 
+    // Upload as current version.
+    await AzureFileClient.Upload(context, path, platform == "windows" 
         ? $"cakeup-x86_64-v{version}.exe"
-        : $"cakeup-x86_64-v{version}";
+        : $"cakeup-x86_64-v{version}");
 
-    Information("Uploading executable to Azure ({0}/{1})...", platform, remoteFilename);
-    using(var stream = context.FileSystem.GetFile(path).OpenRead())
-    {
-        await AzureFileClient.Upload(stream, connection, platform, remoteFilename);
-    }
+    // Overwrite the latest version.
+    await AzureFileClient.Upload(context, path, platform == "windows" 
+        ? $"cakeup-x86_64-latest.exe"
+        : $"cakeup-x86_64-latest");
 });
 
 ///////////////////////////////////////////////////////////////////////////////

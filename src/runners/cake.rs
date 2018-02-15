@@ -21,6 +21,15 @@ pub enum Host {
     CoreClr,
     Mono,
 }
+impl Host {
+    pub fn get_name(&self) -> &str {
+        match &self {
+            &&Host::Clr => return "CLR",
+            &&Host::CoreClr => return "dotnet",
+            &&Host::Mono => return "mono"
+        }
+    }
+}
 
 impl Cake {
     pub fn bootstrap(&self, config: &Config) -> Result<(), Error> {
@@ -30,59 +39,35 @@ impl Cake {
             return Ok(());
         }
 
-        let result: ExitStatus;
-        match self.host {
-            Host::Clr => {
-                println!("Bootstrapping (CLR)...");
-                result = Command::new(&self.path)
-                    .arg("--bootstrap")
-                    .args(&config.remaining)
-                    .status()?;
-            }
-            Host::CoreClr | Host::Mono => {
-                let mut host = "dotnet";
-                if self.host == Host::Mono {
-                    host = "mono";
-                    println!("Bootstrapping (mono)...");
-                } else {
-                    println!("Bootstrapping (dotnet)...");
-                }
-                result = Command::new(host)
-                    .arg(&self.path)
-                    .arg("--bootstrap")
-                    .args(&config.remaining)
-                    .status()?;
-            }
-        };
+        let mut args = vec![String::from("--bootstrap")];
+        let remaining = &config.remaining;
+        args.extend(remaining.iter().cloned());
 
-        if result.code() != Some(0) {
-            return Err(Error::new(ErrorKind::Other,
-                format!("Exit code was {}.", result.code().unwrap())))
-        }
-
-        return Ok(());
+        println!("Bootstrapping script ({})...", self.host.get_name());
+        return self.execute_script(&args);
     }
 
     pub fn execute(&self, config: &Config) -> Result<(), Error> {
+        println!("Executing script ({})...", self.host.get_name());
+        return self.execute_script(&config.remaining);
+    }
+
+    fn execute_script(&self, args: &Vec<String>) -> Result<(), Error> {
         let result: ExitStatus;
         match self.host {
             Host::Clr => {
-                println!("Executing (CLR)...");
                 result = Command::new(&self.path)
-                    .args(&config.remaining)
+                    .args(args)
                     .status()?;
             }
             Host::CoreClr | Host::Mono => {
                 let mut host = "dotnet";
                 if self.host == Host::Mono {
                     host = "mono";
-                    println!("Executing (mono)...");
-                } else {
-                    println!("Executing (dotnet)...");
                 }
                 result = Command::new(host)
                     .arg(&self.path)
-                    .args(&config.remaining)
+                    .args(args)
                     .status()?;
             }
         };
@@ -96,7 +81,11 @@ impl Cake {
     }
 }
 
-pub fn install(config: &Config) -> Result<Cake, Error> {
+pub fn install(config: &Config) -> Result<Option<Cake>, Error> {
+
+    if config.cake_version == None {
+        return Ok(Option::None);
+    }
 
     // Get the version we're going to use.
     let mut version = String::from(&config.cake_version.as_ref().unwrap()[..]);
@@ -116,14 +105,15 @@ pub fn install(config: &Config) -> Result<Cake, Error> {
     let cake_folder_path = config
         .tools
         .join(format!("{0}.{1}", flavor.to_lowercase(), version));
+
     if !cake_folder_path.exists() {
         let cake_nupkg_path = config.tools.join(get_cake_package_name(&config, &version));
         if !cake_nupkg_path.exists() {
-            println!("Downloading {0} {1}...", flavor, version);
             let url = &format!(
                 "https://www.nuget.org/api/v2/package/{0}/{1}",
                 flavor, version
             );
+            println!("Downloading {}...", url);
             http::download(
                 &url,
                 &cake_nupkg_path,
@@ -137,35 +127,26 @@ pub fn install(config: &Config) -> Result<Cake, Error> {
     }
 
     // What host should we use?
-    let mut host = Host::Clr;
-    if config.use_coreclr {
-        host = Host::CoreClr;
+    let host = if config.use_coreclr {
+        Host::CoreClr
+    } else if cfg!(unix) {
+        Host::Mono
     } else {
-        // Running on OSX/Linux/BSD?
-        if cfg!(unix) {
-            host = Host::Mono;
-        }
-    }
+        Host::Clr
+    };
 
-    // Get the filename
+    // Get the Cake filename to invoke.
     let cake_filename = if config.use_coreclr {
         "Cake.dll"
     } else {
         "Cake.exe"
     };
 
-    return Ok(Cake {
+    return Ok(Option::Some(Cake {
         path: cake_folder_path.join(&cake_filename),
         version: Version::parse(&version).unwrap(),
         host: host,
-    });
-}
-
-pub fn should_install_cake(config: &Config) -> bool {
-    return match config.cake_version {
-        None => false,
-        _ => true
-    }
+    }));
 }
 
 fn get_cake_package_name(config: &Config, version: &String) -> String {
