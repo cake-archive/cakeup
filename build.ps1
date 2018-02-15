@@ -1,9 +1,3 @@
-$CakeVersion = "0.25.0";
-$NuGetVersion = "none";
-$DotnetVersion = "1.1.7";
-$CoreClr = $true;
-$Bootstrap = $false;
-
 # Fix up the script root.
 if(!$PSScriptRoot){
     $PSScriptRoot = Split-Path $MyInvocation.MyCommand.Path -Parent
@@ -21,9 +15,9 @@ if (!(Test-Path $CakeUp)) {
 }
 
 # Execute Cakeup
-&$CakeUp "--cake=$CakeVersion" "--nuget=$NuGetVersion" `
-         "--sdk=$DotnetVersion" "--coreclr=$CoreClr" `
-         "--bootstrap=$Bootstrap" "--execute" "--" "$args"
+&$CakeUp "--cake=0.25.0" "--nuget=latest" `
+         "--sdk=1.1.7" "--coreclr" `
+         "--bootstrap" "--execute" "--" "$args"
 
 # Return the exit code from Cakeup.
 exit $LASTEXITCODE;

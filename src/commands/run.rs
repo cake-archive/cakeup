@@ -21,22 +21,24 @@ impl Command for RunCommand {
             _ => {}
         };
 
-        // Download NuGet.
+        // NuGet
         match nuget::install(&config) {
             Err(e) => return Err(Error::new(ErrorKind::Other,
                 format!("An error occured while installing NuGet. {}", e))),
             _ => {}
         };
 
-        // Install dotnet.
+        // .NET Core SDK
         match dotnet::install(&config) {
             Err(e) => return Err(Error::new(ErrorKind::Other,
                 format!("An error occured while installing dotnet. {}", e))),
             _ => {}
         };
 
-        // Download Cake.
+        // Cake
         if cake::should_install_cake(config) {
+
+            // Install Cake.
             let cake = match cake::install(&config) {
                 Ok(c) => c,
                 Err(e) => return Err(Error::new(ErrorKind::Other,

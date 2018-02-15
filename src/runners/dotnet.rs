@@ -13,11 +13,11 @@ use utils::*;
 
 pub fn install(config: &Config) -> Result<(), Error> {
 
-    if !should_install_dotnet(config) {
+    if !should_install(config) {
         return Ok(());
     }
 
-    // Get the installed version.
+    // Get the currently installed version.
     let installed_version = get_installed_version().unwrap_or_else(|_err| {
         return String::from("");
     });
@@ -35,16 +35,23 @@ pub fn install(config: &Config) -> Result<(), Error> {
         fs::create_dir(&dotnet_path)?;
     }
 
+    // Execute the installation script.
     if cfg!(unix) {
-        // Execute the Bash script.
-        execute_bash_script(&dotnet_path, &sdk_version)?;
+        execute_shell_script(&dotnet_path, &sdk_version)?;
     } else {
-        // Execute the PowerShell script.
         execute_powershell_script(&dotnet_path, &sdk_version)?;
     }
 
     // Set environment variables.
     set_environment_variables(&dotnet_path);
+
+    // Get the installed version again.
+    println!("Verifying installation...");
+    let installed_version = get_installed_version()?;
+    if installed_version != sdk_version {
+        return Err(Error::new(ErrorKind::Other, "It looks like dotnet wasn't properly installed."));
+    }
+    println!("Installation OK.");
 
     return Ok(());
 }
@@ -55,7 +62,7 @@ fn get_installed_version() -> Result<String, Error> {
                 .arg("--version").output()?;
 
     if !output.status.success() {
-        return Err(Error::new(ErrorKind::Other, "Could not get version."));
+        return Err(Error::new(ErrorKind::Other, "Could not get installed version."));
     }
 
     // Same as the wanted version?
@@ -67,12 +74,13 @@ fn set_environment_variables(dotnet_path: &PathBuf) {
     // Update the environment path.
     let env_path = &env::var("PATH").unwrap()[..];
     env::set_var("PATH", format!("{};{}", dotnet_path.display(), env_path));
+
     // Add the installation directory as the first path.
     env::set_var("DOTNET_SKIP_FIRST_TIME_EXPERIENCE", "1");
     env::set_var("DOTNET_CLI_TELEMETRY_OPTOUT", "1");
 }
 
-fn execute_bash_script(dotnet_path: &PathBuf, version: &str) -> Result<(), Error> {
+fn execute_shell_script(dotnet_path: &PathBuf, version: &str) -> Result<(), Error> {
     // Download the installation script.
     let dotnet_script = dotnet_path.join("dotnet-install.sh");
     let dotnet_url = String::from("https://dot.net/v1/dotnet-install.sh");
@@ -85,7 +93,7 @@ fn execute_bash_script(dotnet_path: &PathBuf, version: &str) -> Result<(), Error
                 .arg("--version").arg(version)
                 .arg("--install-dir").arg(&dotnet_path)
                 .arg("--no-path")
-                .status()?;
+                .output()?;
 
     return Ok(());
 }
@@ -110,7 +118,7 @@ fn execute_powershell_script(dotnet_path: &PathBuf, version: &str) -> Result<(),
     return Ok(());
 }
 
-fn should_install_dotnet(config: &Config) -> bool {
+fn should_install(config: &Config) -> bool {
     return match config.sdk_version {
         None => false,
         _ => true
