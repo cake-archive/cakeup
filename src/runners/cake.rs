@@ -23,11 +23,10 @@ impl Cake {
             return Ok(());
         }
 
-        println!("Bootstrapping...");
-
         let result: ExitStatus;
         match self.host {
             Host::Clr => {
+                println!("Bootstrapping (CLR)...");
                 result = Command::new(&self.path)
                     .arg("--bootstrap")
                     .args(&config.remaining)
@@ -37,6 +36,9 @@ impl Cake {
                 let mut host = "dotnet";
                 if self.host == Host::Mono {
                     host = "mono";
+                    println!("Bootstrapping (mono)...");
+                } else {
+                    println!("Bootstrapping (dotnet)...");
                 }
                 result = Command::new(host)
                     .arg(&self.path)
@@ -55,11 +57,10 @@ impl Cake {
     }
 
     pub fn execute(&self, config: &Config) -> Result<(), Error> {
-        println!("Executing...");
-
         let result: ExitStatus;
         match self.host {
             Host::Clr => {
+                println!("Executing (CLR)...");
                 result = Command::new(&self.path)
                     .args(&config.remaining)
                     .status()?;
@@ -68,6 +69,9 @@ impl Cake {
                 let mut host = "dotnet";
                 if self.host == Host::Mono {
                     host = "mono";
+                    println!("Executing (mono)...");
+                } else {
+                    println!("Executing (dotnet)...");
                 }
                 result = Command::new(host)
                     .arg(&self.path)
