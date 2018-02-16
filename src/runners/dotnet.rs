@@ -75,8 +75,7 @@ fn set_environment_variables(dotnet_path: &PathBuf) {
     env::set_var("DOTNET_CLI_TELEMETRY_OPTOUT", "1");
 }
 
-#[cfg(target_os = "linux")]
-#[cfg(target_os = "macos")]
+#[cfg(any(target_os = "macos", target_os = "linux"))]
 fn execute_install_script(dotnet_path: &PathBuf, version: &str) -> Result<(), Error> {
     // Download the installation script.
     let dotnet_script = dotnet_path.join("dotnet-install.sh");
