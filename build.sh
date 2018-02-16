@@ -9,10 +9,10 @@ case "${uname_out}" in
 esac
 
 # Make sure that cakeup exist.
-cakeup="$script_dir/cakeup-x86_64-latest"
+cakeup="$script_dir/cakeup-x86_64-v0.2.38"
 if [ ! -f "$cakeup" ]; then
     echo "Downloading Cakeup ($platform)..."
-    curl -Lsfo $cakeup "https://cakeup.blob.core.windows.net/$platform/cakeup-x86_64-latest"
+    curl -Lsfo $cakeup "https://cakeup.blob.core.windows.net/$platform/cakeup-x86_64-v0.2.38"
     echo "Changing access permissions for Cakeup..."
     chmod +x $cakeup
     if [ $? -ne 0 ]; then
@@ -22,6 +22,6 @@ if [ ! -f "$cakeup" ]; then
 fi
 
 # Start Cake
-exec $cakeup --cake="0.25.0" --nuget="latest" \
+exec $cakeup --cake="0.25.0" \
              --sdk="1.1.7" --coreclr \
              --bootstrap --execute -- $@
