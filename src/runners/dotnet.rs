@@ -95,7 +95,7 @@ fn execute_install_script(dotnet_path: &PathBuf, version: &str) -> Result<(), Er
     return Ok(());
 }
 
-#[cfg(not(target_os = "linux"))]
+#[cfg(target_os = "windows")]
 fn execute_install_script(dotnet_path: &PathBuf, version: &str) -> Result<(), Error> {
     // Download the installation script.
     let dotnet_script = dotnet_path.join("dotnet-install.ps1");
