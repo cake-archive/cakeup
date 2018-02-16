@@ -36,7 +36,11 @@ pub fn install(config: &Config) -> Result<(), Error> {
     }
 
     // Execute the installation script.
-    execute_install_script(&dotnet_path, &sdk_version)?;
+    if cfg!(target_os = "windows") {
+        execute_powershell_script(&dotnet_path, &sdk_version)?;
+    } else {
+        execute_shell_script(&dotnet_path, &sdk_version)?;
+    }
 
     // Set environment variables.
     set_environment_variables(&dotnet_path);
@@ -75,8 +79,7 @@ fn set_environment_variables(dotnet_path: &PathBuf) {
     env::set_var("DOTNET_CLI_TELEMETRY_OPTOUT", "1");
 }
 
-#[cfg(any(target_os = "macos", target_os = "linux"))]
-fn execute_install_script(dotnet_path: &PathBuf, version: &str) -> Result<(), Error> {
+fn execute_shell_script(dotnet_path: &PathBuf, version: &str) -> Result<(), Error> {
     // Download the installation script.
     let dotnet_script = dotnet_path.join("dotnet-install.sh");
     let dotnet_url = String::from("https://dot.net/v1/dotnet-install.sh");
@@ -94,8 +97,7 @@ fn execute_install_script(dotnet_path: &PathBuf, version: &str) -> Result<(), Er
     return Ok(());
 }
 
-#[cfg(target_os = "windows")]
-fn execute_install_script(dotnet_path: &PathBuf, version: &str) -> Result<(), Error> {
+fn execute_powershell_script(dotnet_path: &PathBuf, version: &str) -> Result<(), Error> {
     // Download the installation script.
     let dotnet_script = dotnet_path.join("dotnet-install.ps1");
     let dotnet_url = String::from("https://dot.net/v1/dotnet-install.ps1");
