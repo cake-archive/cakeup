@@ -11,7 +11,7 @@ esac
 # Make sure that cakeup exist.
 cakeup="$script_dir/cakeup-x86_64-latest"
 if [ ! -f "$cakeup" ]; then
-    echo "Downloading Cakeup..."
+    echo "Downloading Cakeup ($platform)..."
     curl -Lsfo $cakeup "https://cakeup.blob.core.windows.net/$platform/cakeup-x86_64-latest"
     echo "Changing access permissions for Cakeup..."
     chmod +x $cakeup
