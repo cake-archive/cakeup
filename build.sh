@@ -11,10 +11,12 @@ esac
 # Make sure that cakeup exist.
 cakeup="$script_dir/cakeup-x86_64-latest"
 if [ ! -f "$cakeup" ]; then
-    echo "Downloading cakeup..."
+    echo "Downloading Cakeup..."
     curl -Lsfo $cakeup "https://cakeup.blob.core.windows.net/$platform/cakeup-x86_64-latest"
+    echo "Changing access permissions for Cakeup..."
+    chmod +x $cakeup
     if [ $? -ne 0 ]; then
-        echo "An error occured while downloading cakeup."
+        echo "An error occured while downloading Cakeup."
         exit 1
     fi
 fi
