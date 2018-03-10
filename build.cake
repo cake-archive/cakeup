@@ -59,12 +59,32 @@ Task("Build")
     .IsDependentOn("Patch-Version")
     .Does(c => 
 {
-    // Build Cakeup.
-    StartProcess("cargo", new ProcessSettings {
-        Arguments = new ProcessArgumentBuilder()
-            .Append("build")
-            .Append("--release")
-    });
+    // Are we building on Linux?
+    // If so, we want to build for MUSL.
+    if(c.Environment.Platform.Family != PlatformFamily.Windows) {
+        // Ensure MUSL target is installed.
+        StartProcess("rustup", new ProcessSettings {
+            Arguments = new ProcessArgumentBuilder()
+                .Append("target")
+                .Append("add")
+                .Append("x86_64-unknown-linux-musl")
+        });
+
+        // Build Cakeup for Linux.
+        StartProcess("cargo", new ProcessSettings {
+            Arguments = new ProcessArgumentBuilder()
+                .Append("build")
+                .Append("--target=x86_64-unknown-linux-musl")
+                .Append("--release")
+        });    
+    } else {
+        // Build Cakeup for Windows or MacOS.
+        StartProcess("cargo", new ProcessSettings {
+            Arguments = new ProcessArgumentBuilder()
+                .Append("build")
+                .Append("--release")
+        });
+    }
 
     // Not running on Windows?
     if(c.Environment.Platform.Family != PlatformFamily.Windows) {
