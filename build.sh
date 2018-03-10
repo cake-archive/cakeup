@@ -8,16 +8,14 @@
 # Define directories.
 SCRIPT_DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 TOOLS_DIR=$SCRIPT_DIR/tools
-NUGET_EXE=$TOOLS_DIR/nuget.exe
-NUGET_URL=https://dist.nuget.org/win-x86-commandline/latest/nuget.exe
 CAKE_VERSION=0.26.1
-CAKE_EXE=$TOOLS_DIR/Cake.$CAKE_VERSION/Cake.exe
+CAKE_EXE=$TOOLS_DIR/Cake.CoreClr.$CAKE_VERSION/Cake.dll
 
 # Temporarily skip verification of addins.
 export CAKE_SETTINGS_SKIPVERIFICATION='true'
 
 # Define default arguments.
-TARGET="Travis"
+TARGET="Default"
 CONFIGURATION="Release"
 VERBOSITY="verbose"
 DRYRUN=
@@ -57,25 +55,11 @@ export DOTNET_CLI_TELEMETRY_OPTOUT=1
 "$SCRIPT_DIR/.dotnet/dotnet" --info
 
 ###########################################################################
-# INSTALL NUGET
-###########################################################################
-
-# Download NuGet if it does not exist.
-if [ ! -f "$NUGET_EXE" ]; then
-    echo "Downloading NuGet..."
-    curl -Lsfo "$NUGET_EXE" $NUGET_URL
-    if [ $? -ne 0 ]; then
-        echo "An error occurred while downloading nuget.exe."
-        exit 1
-    fi
-fi
-
-###########################################################################
 # INSTALL CAKE
 ###########################################################################
 
 if [ ! -f "$CAKE_EXE" ]; then
-    mono "$NUGET_EXE" install Cake -Version $CAKE_VERSION -OutputDirectory "$TOOLS_DIR"
+    mono "$NUGET_EXE" install Cake.CoreClr -Version $CAKE_VERSION -OutputDirectory "$TOOLS_DIR"
     if [ $? -ne 0 ]; then
         echo "An error occured while installing Cake."
         exit 1
@@ -93,4 +77,4 @@ fi
 ###########################################################################
 
 # Start Cake
-exec mono "$CAKE_EXE" build.cake --verbosity=$VERBOSITY --configuration=$CONFIGURATION --target=$TARGET $DRYRUN "${SCRIPT_ARGUMENTS[@]}"
+exec dotnet "$CAKE_EXE" build.cake --verbosity=$VERBOSITY --configuration=$CONFIGURATION --target=$TARGET $DRYRUN "${SCRIPT_ARGUMENTS[@]}"
