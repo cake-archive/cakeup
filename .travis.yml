@@ -21,6 +21,12 @@ addons:
     - libunwind8
     - dotnet-dev-1.1.7
     - musl-tools
+    - libcurl4-openssl-dev
+    - openssl
+    - autoconf
+    - g++
+    - make
+    - libsasl2-dev
 
 # .NET CLI require OSX 10.10
 osx_image: xcode8.3
