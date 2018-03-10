@@ -57,15 +57,13 @@ Task("Patch-Version")
 
 Task("Build")
     .IsDependentOn("Patch-Version")
-    .Does(c => 
+    .Does(context => 
 {
-    var path = "target/release/cakeup";
+    var path = GetTargetDirectory(context);
 
     // Are we building on Linux?
     // If so, we want to build for MUSL.
-    if(c.Environment.Platform.Family != PlatformFamily.Windows) {
-        path = "target/x86_64-unknown-linux-musl/release/cakeup";
-
+    if(context.Environment.Platform.Family != PlatformFamily.Windows) {
         // Ensure MUSL target is installed.
         StartProcess("rustup", new ProcessSettings {
             Arguments = new ProcessArgumentBuilder()
@@ -91,12 +89,12 @@ Task("Build")
     }
 
     // Not running on Windows?
-    if(c.Environment.Platform.Family != PlatformFamily.Windows) {
+    if(context.Environment.Platform.Family != PlatformFamily.Windows) {
         // Remove inessential information from executable.
         // This way we make the binary size smaller.
         StartProcess("strip", new ProcessSettings {
             Arguments = new ProcessArgumentBuilder()
-                .Append(path)
+                .Append(path.CombineWithFilePath("cakeup").FullPath)
         });
     }
 });
@@ -107,19 +105,20 @@ Task("Deploy")
     .Does(async context => 
 {
     var platform = GetPlatformName(context);
-    var filename = platform == "windows" ? "cakeup.exe" : "cakeup";
-    var path = platform == "linux" ? "target/x86_64-unknown-linux-musl/release" : "./target/release";
-    path = File($"{path}/{filename}");
+    var filename = GetTargetFilename(context);
+    var path = GetTargetDirectory(context).CombineWithFilePath(filename);
 
     // Upload as current version.
-    await AzureFileClient.Upload(context, path, platform == "windows" 
-        ? $"cakeup-x86_64-v{version}.exe"
-        : $"cakeup-x86_64-v{version}");
+    await AzureFileClient.Upload(context, path, 
+        platform == "windows" 
+            ? $"cakeup-x86_64-v{version}.exe"
+            : $"cakeup-x86_64-v{version}");
 
     // Overwrite the latest version.
-    await AzureFileClient.Upload(context, path, platform == "windows" 
-        ? $"cakeup-x86_64-latest.exe"
-        : $"cakeup-x86_64-latest");
+    await AzureFileClient.Upload(context, path,
+        platform == "windows" 
+            ? $"cakeup-x86_64-latest.exe"
+            : $"cakeup-x86_64-latest");
 });
 
 ///////////////////////////////////////////////////////////////////////////////
