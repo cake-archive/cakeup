@@ -37,4 +37,4 @@ before_install:
 before_script:
   - if test "$TRAVIS_OS_NAME" == "linux"; then curl https://www.openssl.org/source/old/1.0.2/openssl-1.0.2g.tar.gz | tar xzf - && cd openssl-1.0.2g && CC=musl-gcc ./Configure --prefix=$HOME/openssl no-dso linux-x86_64 -fPIC && make -j10 && make install && cd .. && rm -rf openssl-1.0.2g; fi
 script:
-  - ./build.sh --verbosity=diagnostic
+  - ./build.sh --verbosity diagnostic
