@@ -59,7 +59,8 @@ export DOTNET_CLI_TELEMETRY_OPTOUT=1
 ###########################################################################
 
 if [ ! -f "$CAKE_EXE" ]; then
-    mono "$NUGET_EXE" install Cake.CoreClr -Version $CAKE_VERSION -OutputDirectory "$TOOLS_DIR"
+    echo "Installing Cake $CAKE_VERSION..."
+    curl -Lsfo Cake.zip "https://www.nuget.org/api/v2/package/Cake.CoreClr/$CAKE_VERSION" && unzip -q Cake.zip -d "$TOOLS_DIR/Cake.CoreClr.$CAKE_VERSION" && rm -f Cake.zip
     if [ $? -ne 0 ]; then
         echo "An error occured while installing Cake."
         exit 1
