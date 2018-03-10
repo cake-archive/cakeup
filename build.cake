@@ -59,9 +59,13 @@ Task("Build")
     .IsDependentOn("Patch-Version")
     .Does(c => 
 {
+    var path = "target/release/cakeup";
+
     // Are we building on Linux?
     // If so, we want to build for MUSL.
     if(c.Environment.Platform.Family != PlatformFamily.Windows) {
+        path = "target/x86_64-unknown-linux-musl/release/cakeup"
+
         // Ensure MUSL target is installed.
         StartProcess("rustup", new ProcessSettings {
             Arguments = new ProcessArgumentBuilder()
@@ -92,7 +96,7 @@ Task("Build")
         // This way we make the binary size smaller.
         StartProcess("strip", new ProcessSettings {
             Arguments = new ProcessArgumentBuilder()
-                .Append("target/release/cakeup")
+                .Append(path)
         });
     }
 });
@@ -104,7 +108,8 @@ Task("Deploy")
 {
     var platform = GetPlatformName(context);
     var filename = platform == "windows" ? "cakeup.exe" : "cakeup";
-    var path = File($"./target/release/{filename}");
+    var path = platform == "linux" ? "target/x86_64-unknown-linux-musl/release" : "./target/release"
+    path = File($"{path}/{filename}");
 
     // Upload as current version.
     await AzureFileClient.Upload(context, path, platform == "windows" 
