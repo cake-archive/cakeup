@@ -64,7 +64,7 @@ Task("Build")
     // Are we building on Linux?
     // If so, we want to build for MUSL.
     if(c.Environment.Platform.Family != PlatformFamily.Windows) {
-        path = "target/x86_64-unknown-linux-musl/release/cakeup"
+        path = "target/x86_64-unknown-linux-musl/release/cakeup";
 
         // Ensure MUSL target is installed.
         StartProcess("rustup", new ProcessSettings {
@@ -108,7 +108,7 @@ Task("Deploy")
 {
     var platform = GetPlatformName(context);
     var filename = platform == "windows" ? "cakeup.exe" : "cakeup";
-    var path = platform == "linux" ? "target/x86_64-unknown-linux-musl/release" : "./target/release"
+    var path = platform == "linux" ? "target/x86_64-unknown-linux-musl/release" : "./target/release";
     path = File($"{path}/{filename}");
 
     // Upload as current version.
