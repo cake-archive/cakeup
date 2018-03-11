@@ -11,8 +11,7 @@ public static class CakeVersion
 
         var tag = GitUtils.GetTag(context);
         if(string.IsNullOrWhiteSpace(tag)) {
-            // TODO: temporary hack to get things to compile...
-            tag = "v0.2";
+            throw new InvalidOperationException("Could not retrieve tag from Git.");
         }
 
         // Get the commit count since tag.
