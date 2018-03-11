@@ -55,8 +55,33 @@ Task("Patch-Version")
     System.IO.File.WriteAllText(path.FullPath, result);
 });
 
+Task("Build-OpenSSL")
+    .Does(context => 
+{
+    EnsureEnvironmentVariable(context, "OPENSSL_DIR");
+    var location = new DirectoryPath(context.EnvironmentVariable("OPENSSL_DIR"));
+    if(DirectoryExists(location)) 
+    {
+        Information("Found OpenSSL, so no need to build it.");
+        return;
+    }
+
+    Information("Building OpenSSL ({0}). This will take a while...", location);
+    var process = System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+    {
+        FileName = "/bin/bash",
+        UseShellExecute = true,
+        Arguments = string.Format("-c \"sudo -E {0} {1}\"", 
+            MakeAbsolute(Directory("./scripts/shell/build_openssl_musl.sh")).FullPath,
+            location)
+    });
+
+    process.WaitForExit();
+});
+
 Task("Build-Linux")
     .IsDependentOn("Patch-Version")
+    .IsDependentOn("Build-OpenSSL")
     .WithCriteria(() => Context.Environment.Platform.Family == PlatformFamily.Linux)
     .Does(context => 
 {
