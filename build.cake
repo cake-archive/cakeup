@@ -55,43 +55,57 @@ Task("Patch-Version")
     System.IO.File.WriteAllText(path.FullPath, result);
 });
 
-Task("Build")
+Task("Build-Linux")
     .IsDependentOn("Patch-Version")
+    .WithCriteria(() => Context.Environment.Platform.Family == PlatformFamily.Linux)
     .Does(context => 
 {
+    EnsureEnvironmentVariable(context, "OPENSSL_STATIC", "1");
+    EnsureEnvironmentVariable(context, "OPENSSL_DIR");
+
+    // Ensure MUSL target is installed.
+    StartProcess("rustup", new ProcessSettings {
+        Arguments = new ProcessArgumentBuilder()
+            .Append("target")
+            .Append("add")
+            .Append("x86_64-unknown-linux-musl")
+    });
+
+    // Build Cakeup for Linux.
+    StartProcess("cargo", new ProcessSettings {
+        Arguments = new ProcessArgumentBuilder()
+            .Append("build")
+            .Append("--target=x86_64-unknown-linux-musl")
+            .Append("--release")
+    });
+
+    // Remove inessential information from executable.
+    // This way we make the binary size smaller.
     var path = GetTargetDirectory(context);
+    StartProcess("strip", new ProcessSettings {
+        Arguments = new ProcessArgumentBuilder()
+            .Append(path.CombineWithFilePath("cakeup").FullPath)
+    });
+});
 
-    // Are we building on Linux?
-    // If so, we want to build for MUSL.
-    if(context.Environment.Platform.Family != PlatformFamily.Windows) {
-        // Ensure MUSL target is installed.
-        StartProcess("rustup", new ProcessSettings {
-            Arguments = new ProcessArgumentBuilder()
-                .Append("target")
-                .Append("add")
-                .Append("x86_64-unknown-linux-musl")
-        });
-
-        // Build Cakeup for Linux.
-        StartProcess("cargo", new ProcessSettings {
-            Arguments = new ProcessArgumentBuilder()
-                .Append("build")
-                .Append("--target=x86_64-unknown-linux-musl")
-                .Append("--release")
-        });    
-    } else {
-        // Build Cakeup for Windows or MacOS.
-        StartProcess("cargo", new ProcessSettings {
-            Arguments = new ProcessArgumentBuilder()
-                .Append("build")
-                .Append("--release")
-        });
-    }
+Task("Build")
+    .IsDependentOn("Patch-Version")
+    .WithCriteria(() => Context.Environment.Platform.Family != PlatformFamily.Linux)
+    .Does(context => 
+{
+    // Build Cakeup for Windows or MacOS.
+    StartProcess("cargo", new ProcessSettings {
+        Arguments = new ProcessArgumentBuilder()
+            .Append("build")
+            .Append("--release")
+    });
 
     // Not running on Windows?
-    if(context.Environment.Platform.Family != PlatformFamily.Windows) {
+    if(context.Environment.Platform.Family != PlatformFamily.Windows)
+    {
         // Remove inessential information from executable.
         // This way we make the binary size smaller.
+        var path = GetTargetDirectory(context);
         StartProcess("strip", new ProcessSettings {
             Arguments = new ProcessArgumentBuilder()
                 .Append(path.CombineWithFilePath("cakeup").FullPath)
@@ -102,6 +116,7 @@ Task("Build")
 Task("Deploy")
     .WithCriteria(() => deploy)
     .IsDependentOn("Build")
+    .IsDependentOn("Build-Linux")
     .Does(async context => 
 {
     var platform = GetPlatformName(context);
