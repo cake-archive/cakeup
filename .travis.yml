@@ -4,6 +4,8 @@ rust:
 os:
   - osx
   - linux
+git:
+  depth: false
 
 # .NET CLI require Ubuntu 14.04
 sudo: required
