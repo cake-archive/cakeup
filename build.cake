@@ -56,6 +56,7 @@ Task("Patch-Version")
 });
 
 Task("Build-OpenSSL")
+    .WithCriteria(() => Context.Environment.Platform.Family == PlatformFamily.Linux)
     .Does(context => 
 {
     EnsureEnvironmentVariable(context, "OPENSSL_DIR");
