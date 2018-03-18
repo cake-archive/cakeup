@@ -11,7 +11,13 @@ public static class CakeVersion
 
         var tag = GitUtils.GetTag(context);
         if(string.IsNullOrWhiteSpace(tag)) {
-            throw new InvalidOperationException("Could not retrieve tag from Git.");
+            if(branch == "master") {
+                throw new InvalidOperationException("Could not retrieve tag from Git.");
+            }
+
+            // This is not ideal, but let's go with it for now...
+            var normalizedBranchName = branch.Split('/').LastOrDefault() ?? branch;
+            return $"0.0.1-{normalizedBranchName}";
         }
 
         // Get the commit count since tag.
@@ -21,9 +27,6 @@ public static class CakeVersion
         // Create the version depending on the branchg.
         if(branch.Equals("master", StringComparison.OrdinalIgnoreCase)) {
             return $"{version.Major}.{version.Minor}.{commits}";
-        }
-        if(branch.Equals("develop", StringComparison.OrdinalIgnoreCase)) {
-            return $"{version.Major}.{version.Minor}.{version.Build}-alpha{commits}";
         }
         return $"{version.Major}.{version.Minor}.{version.Build}-{branch}-build{commits}";
     }

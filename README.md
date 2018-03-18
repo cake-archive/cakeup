@@ -22,22 +22,35 @@ to keep this around or not.**
 ## Usage
 
 ```
-Usage: cakeup [--cake=<VERSION>] [--script=<SCRIPT>]
-              [--nuget=<VERSION>] [--sdk=<VERSION>]
-              [--coreclr] [--bootstrap] [--execute]
-              [-- ARGUMENTS]
+USAGE:
+    cakeup [SUBCOMMAND]
 
-  --coreclr           Use CoreCLR version of Cake.
-  --bootstrap         Bootstraps Cake modules.
-  --execute           Executes the Cake script.
+FLAGS:
+    -h, --help       Prints help information
+    -V, --version    Prints version information
 
-  --cake   <VERSION>  The version of Cake to install.
-  --script <SCRIPT>   The script to execute.
-  --nuget  <VERSION>  The version of NuGet to install.
-  --sdk    <VERSION>  The version of the dotnet SDK to install.
+SUBCOMMANDS:
+    help    Prints this message or the help of the given subcommand(s)
+    run     Runs installation and execution of Cake and related tools
+```
 
-  --version           Prints version information.
-  --help              Prints help information.
+### Run command
+
+```
+USAGE:
+    cakeup run [FLAGS] [OPTIONS]
+
+FLAGS:
+        --bootstrap    Bootstraps Cake modules.
+        --coreclr      Use the CoreCLR version of Cake.
+        --execute      Executes the Cake script.
+    -h, --help         Prints help information
+    -V, --version      Prints version information
+
+OPTIONS:
+        --cake <cake>      The version of Cake to install.
+        --nuget <nuget>    The version of NuGet to install.
+        --sdk <sdk>        The version of the dotnet SDK to install.
 ```
 
 You can also set parameters to cakeup via the following

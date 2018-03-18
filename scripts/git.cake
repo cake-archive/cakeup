@@ -2,12 +2,18 @@ public static class GitUtils
 {
     public static string GetBranch(ICakeContext context)
     {
+        context.Verbose("Git: Getting branch...");
+
         var ci = context.BuildSystem();
         if(ci.TravisCI.IsRunningOnTravisCI) {
-            return ci.TravisCI.Environment.Build.Branch;
+            var branchName = ci.TravisCI.Environment.Build.Branch;
+            context.Verbose("Returning AppVeyor branch: {0}", branchName);
+            return branchName;
         }
         if(ci.AppVeyor.IsRunningOnAppVeyor) {
-            return ci.AppVeyor.Environment.Repository.Branch;
+            var branchName = ci.AppVeyor.Environment.Repository.Branch;
+            context.Verbose("Returning AppVeyor branch: {0}", branchName);
+            return branchName;
         }
 
         using(var process = context.StartAndReturnProcess("git", new ProcessSettings 
@@ -25,6 +31,8 @@ public static class GitUtils
 
     public static string GetTag(ICakeContext context)
     {
+        context.Verbose("Git: Getting latest tag...");
+
         using(var process = context.StartAndReturnProcess("git", new ProcessSettings 
         {
             RedirectStandardOutput = true,
@@ -42,6 +50,8 @@ public static class GitUtils
 
     public static string GetCommitsSinceTag(ICakeContext context, string tag) 
     {
+        context.Verbose("Git: Getting commits since tag...");
+
         using(var process = context.StartAndReturnProcess("git", new ProcessSettings 
         {
             RedirectStandardOutput = true,

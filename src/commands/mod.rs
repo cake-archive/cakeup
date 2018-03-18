@@ -3,24 +3,23 @@
 // See the LICENSE file in the project root for more information.
 
 use std::io;
-use ::config::Config;
+use clap::{App};
 
 mod help;
-mod version;
 mod run;
 
+pub enum CommandType {
+    Run,
+    Help
+}
+
 pub trait Command {
-    fn run(&self, _config: &Config) -> Result<(), io::Error>;
+    fn run(&self, app: App) -> Result<(), io::Error>;
 }
 
-pub fn help() -> Box<Command> {
-    return Box::new(help::HelpCommand { })
-}
-
-pub fn version() -> Box<Command> {
-    return Box::new(version::VersionCommand { })
-}
-
-pub fn run() -> Box<Command> {
-    return Box::new(run::RunCommand { })
+pub fn create(command: CommandType) -> Box<Command> {
+    return match command {
+        CommandType::Run => Box::new(run::RunCommand { }),
+        CommandType::Help => Box::new(help::HelpCommand {})
+    }
 }
