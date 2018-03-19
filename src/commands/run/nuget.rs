@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 use std::io::{Error};
+use std::process;
 use super::Config;
 use utils::*;
 
@@ -14,6 +15,13 @@ pub fn install(config: &Config) -> Result<(), Error> {
             let url = format!("https://dist.nuget.org/win-x86-commandline/{}/nuget.exe", version);
             println!("Downloading {}...", url);
             http::download(&url, &file, Some("Cakeup"))?;
+
+            // Give the script executable permissions.
+            process::Command::new("chmod")
+                        .arg("+x").arg(version)
+                        .arg(&file)
+                        .output()?;
+
             println!("Installed Nuget.");
         } else {
             println!("Nuget is already installed.");
