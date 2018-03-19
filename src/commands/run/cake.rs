@@ -26,7 +26,7 @@ impl Host {
         match &self {
             &&Host::Clr => return "CLR",
             &&Host::CoreClr => return "dotnet",
-            &&Host::Mono => return "mono"
+            &&Host::Mono => return "mono",
         }
     }
 }
@@ -56,25 +56,22 @@ impl Cake {
         let result: ExitStatus;
         match self.host {
             Host::Clr => {
-                result = Command::new(&self.path)
-                    .args(args)
-                    .status()?;
+                result = Command::new(&self.path).args(args).status()?;
             }
             Host::CoreClr | Host::Mono => {
                 let mut host = "dotnet";
                 if self.host == Host::Mono {
                     host = "mono";
                 }
-                result = Command::new(host)
-                    .arg(&self.path)
-                    .args(args)
-                    .status()?;
+                result = Command::new(host).arg(&self.path).args(args).status()?;
             }
         };
 
         if result.code() != Some(0) {
-            return Err(Error::new(ErrorKind::Other,
-                format!("Exit code was {}.", result.code().unwrap())))
+            return Err(Error::new(
+                ErrorKind::Other,
+                format!("Exit code was {}.", result.code().unwrap()),
+            ));
         }
 
         return Ok(());
@@ -82,7 +79,6 @@ impl Cake {
 }
 
 pub fn install(config: &Config) -> Result<Option<Cake>, Error> {
-
     if !should_install(&config) {
         return Ok(Option::None);
     }
@@ -95,17 +91,15 @@ pub fn install(config: &Config) -> Result<Option<Cake>, Error> {
         version = String::from(&release.name[1..]); // Github releases are prefixed with "v".
     }
 
-    // What flavor of Cake do we want to download?
-    let mut flavor = "Cake";
-    if config.use_coreclr {
-        flavor = "Cake.CoreClr";
-    }
+    // Get the "flavor" of Cake to use.
+    let flavor = get_cake_flavor(config);
 
-    // Install Cake.
+    // Get the folder to where Cake should be installed.
     let cake_folder_path = config
         .tools
         .join(format!("{0}.{1}", flavor.to_lowercase(), version));
 
+    // Do we need to download Cake?
     if !cake_folder_path.exists() {
         let cake_nupkg_path = config.tools.join(get_cake_package_name(&config, &version));
         if !cake_nupkg_path.exists() {
@@ -124,31 +118,15 @@ pub fn install(config: &Config) -> Result<Option<Cake>, Error> {
         // Nupkg files are just zip files, so unzip it.
         println!("Unzipping binaries...");
         zip::unzip(&cake_nupkg_path, &cake_folder_path)?;
-        println!("Installed Cake ({}).", &version);
+        println!("Installed {} ({}).", flavor, &version);
     } else {
-        println!("Cake ({}) is already installed.", &version);
+        println!("{} ({}) is already installed.", flavor, &version);
     }
 
-    // What host should we use?
-    let host = if config.use_coreclr {
-        Host::CoreClr
-    } else if cfg!(unix) {
-        Host::Mono
-    } else {
-        Host::Clr
-    };
-
-    // Get the Cake filename to invoke.
-    let cake_filename = if config.use_coreclr {
-        "Cake.dll"
-    } else {
-        "Cake.exe"
-    };
-
     return Ok(Option::Some(Cake {
-        path: cake_folder_path.join(&cake_filename),
+        path: cake_folder_path.join(get_cake_filename(config)),
         version: Version::parse(&version).unwrap(),
-        host: host,
+        host: get_host(config),
     }));
 }
 
@@ -157,8 +135,32 @@ pub fn should_install(config: &Config) -> bool {
 }
 
 fn get_cake_package_name(config: &Config, version: &String) -> String {
+    let flavor = get_cake_flavor(config);
+    return format!("{}.{}.nupkg", flavor.to_lowercase(), version);
+}
+
+fn get_cake_flavor(config: &Config) -> &str {
     if config.use_coreclr {
-        return format!("cake.coreclr.{}.nupkg", version);
-    }
-    return format!("cake.{}.nupkg", version);
+        return "Cake.CoreClr";
+    } else {
+        return "Cake";
+    };
+}
+
+fn get_cake_filename(config: &Config) -> &str {
+    if config.use_coreclr {
+        return "Cake.dll";
+    } else {
+        return "Cake.exe";
+    };
+}
+
+fn get_host(config: &Config) -> Host {
+    if config.use_coreclr {
+        return Host::CoreClr;
+    } else if cfg!(unix) {
+        return Host::Mono;
+    } else {
+        return Host::Clr;
+    };
 }
