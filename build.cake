@@ -55,7 +55,18 @@ Task("Patch-Version")
     System.IO.File.WriteAllText(path.FullPath, result);
 });
 
+Task("Set-Nightly-Compiler")
+    .Does(context => 
+{
+    StartProcess("rustup", new ProcessSettings {
+        Arguments = new ProcessArgumentBuilder()
+            .Append("default")
+            .Append("nightly")
+    });
+});
+
 Task("Build-OpenSSL")
+    .IsDependentOn("Set-Nightly-Compiler")
     .WithCriteria(() => Context.Environment.Platform.Family == PlatformFamily.Linux)
     .Does(context => 
 {
@@ -116,6 +127,7 @@ Task("Build-Linux")
 
 Task("Build")
     .IsDependentOn("Patch-Version")
+    .IsDependentOn("Set-Nightly-Compiler")
     .WithCriteria(() => Context.Environment.Platform.Family != PlatformFamily.Linux)
     .Does(context => 
 {
