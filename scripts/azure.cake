@@ -7,21 +7,11 @@ using Microsoft.WindowsAzure.Storage.Blob;
 
 public class AzureFileClient
 {
-    public static async Task UploadArtifacts(ICakeContext context, string version)
+    public static async Task UploadArtifacts(ICakeContext context, string version, string target = null)
     {
-        await UploadArtifacts(context, version, false);
-    }
-
-    public static async Task UploadMuslArtifacts(ICakeContext context, string version)
-    {
-        await UploadArtifacts(context, version, true);
-    }
-
-    private static async Task UploadArtifacts(ICakeContext context, string version, bool musl)
-    {
-        var platform = GetPlatformName(context, musl);
+        var platform = GetPlatformName(context, target);
         var filename = GetTargetFilename(context);
-        var path = GetTargetDirectory(context, musl).CombineWithFilePath(filename);
+        var path = GetTargetDirectory(context, target).CombineWithFilePath(filename);
 
         // Upload as current version.
         await AzureFileClient.Upload(context, path, platform,

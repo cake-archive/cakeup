@@ -2,6 +2,7 @@
 #load "./scripts/azure.cake"
 #load "./scripts/git.cake"
 #load "./scripts/utils.cake"
+#load "./scripts/rust.cake"
 
 using System.Text.RegularExpressions;
 
@@ -11,6 +12,7 @@ using System.Text.RegularExpressions;
 
 var target = Argument("target", "Default");
 var configuration = Argument("configuration", "Release");
+var musl = !HasArgument("skip-musl");
 
 ///////////////////////////////////////////////////////////////////////////////
 // VARIABLES
@@ -67,7 +69,7 @@ Task("Set-Nightly-Compiler")
 
 Task("Build-OpenSSL")
     .IsDependentOn("Set-Nightly-Compiler")
-    .WithCriteria(() => Context.Environment.Platform.Family == PlatformFamily.Linux)
+    .WithCriteria(() => Context.Environment.Platform.Family == PlatformFamily.Linux && musl)
     .Does(context => 
 {
     EnsureEnvironmentVariable(context, "OPENSSL_DIR");
@@ -91,96 +93,35 @@ Task("Build-OpenSSL")
     process.WaitForExit();
 });
 
-Task("Build-Linux")
-    .IsDependentOn("Patch-Version")
-    .IsDependentOn("Build-OpenSSL")
-    .WithCriteria(() => Context.Environment.Platform.Family == PlatformFamily.Linux)
-    .Does(context => 
-{
-    // Build Cakeup for Linux.
-    Information("Building for Linux...");
-    StartProcess("cargo", new ProcessSettings {
-        Arguments = new ProcessArgumentBuilder()
-            .Append("build")
-            .Append("--release")
-    });
-
-    // Remove inessential information from executable.
-    // This way we make the binary size smaller.
-    var path = GetTargetDirectory(context);
-    StartProcess("strip", new ProcessSettings {
-        Arguments = new ProcessArgumentBuilder()
-            .Append(path.CombineWithFilePath("cakeup").FullPath)
-    });
-
-    EnsureEnvironmentVariable(context, "OPENSSL_STATIC", "1");
-    EnsureEnvironmentVariable(context, "OPENSSL_DIR");
-
-    // Ensure MUSL target is installed.
-    StartProcess("rustup", new ProcessSettings {
-        Arguments = new ProcessArgumentBuilder()
-            .Append("target")
-            .Append("add")
-            .Append("x86_64-unknown-linux-musl")
-    });
-
-    // Build Cakeup for Linux.
-    Information("Building for Linux (MUSL)...");
-    StartProcess("cargo", new ProcessSettings {
-        Arguments = new ProcessArgumentBuilder()
-            .Append("build")
-            .Append("--target=x86_64-unknown-linux-musl")
-            .Append("--release")
-    });
-
-    // Remove inessential information from executable.
-    // This way we make the binary size smaller.
-    path = GetTargetDirectory(context);
-    StartProcess("strip", new ProcessSettings {
-        Arguments = new ProcessArgumentBuilder()
-            .Append(path.CombineWithFilePath("cakeup").FullPath)
-    });
-});
-
 Task("Build")
     .IsDependentOn("Patch-Version")
     .IsDependentOn("Set-Nightly-Compiler")
-    .WithCriteria(() => Context.Environment.Platform.Family != PlatformFamily.Linux)
+    .IsDependentOn("Build-OpenSSL")
     .Does(context => 
 {
-    // Build Cakeup for Windows or MacOS.
-    StartProcess("cargo", new ProcessSettings {
-        Arguments = new ProcessArgumentBuilder()
-            .Append("build")
-            .Append("--release")
-    });
+    Rust.Build(context);
 
-    // Not running on Windows?
-    if(context.Environment.Platform.Family != PlatformFamily.Windows)
+    if(context.Environment.Platform.Family == PlatformFamily.Linux && musl)
     {
-        // Remove inessential information from executable.
-        // This way we make the binary size smaller.
-        var path = GetTargetDirectory(context);
-        StartProcess("strip", new ProcessSettings {
-            Arguments = new ProcessArgumentBuilder()
-                .Append(path.CombineWithFilePath("cakeup").FullPath)
-        });
+        // Build for MUSL.
+        EnsureEnvironmentVariable(context, "OPENSSL_STATIC", "1");
+        EnsureEnvironmentVariable(context, "OPENSSL_DIR");
+        Rust.Build(context, "--target=x86_64-unknown-linux-musl");
     }
 });
 
 Task("Deploy")
     .WithCriteria(() => deploy)
     .IsDependentOn("Build")
-    .IsDependentOn("Build-Linux")
     .Does(async context => 
 {
     await AzureFileClient.UploadArtifacts(context, version);
 
     // Building on Linux?
-    if(context.Environment.Platform.Family == PlatformFamily.Linux)
+    if(context.Environment.Platform.Family == PlatformFamily.Linux && musl)
     {
         // Upload MUSL artifacts as well.
-        await AzureFileClient.UploadMuslArtifacts(context, version);
+        await AzureFileClient.UploadArtifacts(context, version, "--target=x86_64-unknown-linux-musl");
     }
 });
 

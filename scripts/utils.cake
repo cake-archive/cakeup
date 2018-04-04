@@ -1,4 +1,13 @@
-public static string GetPlatformName(ICakeContext context, bool musl = false)
+public static ProcessArgumentBuilder AppendIf(this ProcessArgumentBuilder builder, bool condition, string text)
+{
+    if(condition)
+    {
+        builder.Append(text);
+    }
+    return builder;
+}
+
+public static string GetPlatformName(ICakeContext context, string target = null)
 {
     switch(context.Environment.Platform.Family)
     {
@@ -6,7 +15,7 @@ public static string GetPlatformName(ICakeContext context, bool musl = false)
             return "windows";
         case PlatformFamily.Linux:
         {
-            if(musl) {
+            if(target == "x86_64-unknown-linux-musl") {
                 return "linux-musl";
             }
             return "linux";
@@ -17,13 +26,13 @@ public static string GetPlatformName(ICakeContext context, bool musl = false)
     throw new InvalidOperationException("Could not get platform name.");
 }
 
-public static DirectoryPath GetTargetDirectory(ICakeContext context, bool musl = false)
+public static DirectoryPath GetTargetDirectory(ICakeContext context, string target = null)
 {
-    if(musl == false)
+    if(string.IsNullOrWhiteSpace(target))
     {
         return new DirectoryPath("./target/release");
     }
-    return new DirectoryPath("./target/x86_64-unknown-linux-musl/release");
+    return new DirectoryPath($"./target/{target}/release");
 }
 
 public static string GetTargetFilename(ICakeContext context)
