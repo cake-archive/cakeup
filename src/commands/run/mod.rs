@@ -55,6 +55,9 @@ impl Command for RunCommand {
                     format!("An error occured while downloading Cake. {}", e)))
             };
 
+            // Increase the number of executed commands.
+            executed_commands += 1;
+
             // Was Cake installed?
             if cake.is_some() {
                 let cake = cake.unwrap();
