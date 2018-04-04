@@ -106,7 +106,7 @@ Task("Build")
         // Build for MUSL.
         EnsureEnvironmentVariable(context, "OPENSSL_STATIC", "1");
         EnsureEnvironmentVariable(context, "OPENSSL_DIR");
-        Rust.Build(context, "--target=x86_64-unknown-linux-musl");
+        Rust.Build(context, "x86_64-unknown-linux-musl");
     }
 });
 
@@ -121,7 +121,7 @@ Task("Deploy")
     if(context.Environment.Platform.Family == PlatformFamily.Linux && musl)
     {
         // Upload MUSL artifacts as well.
-        await AzureFileClient.UploadArtifacts(context, version, "--target=x86_64-unknown-linux-musl");
+        await AzureFileClient.UploadArtifacts(context, version, "x86_64-unknown-linux-musl");
     }
 });
 
