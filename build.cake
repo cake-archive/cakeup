@@ -174,13 +174,13 @@ Task("Deploy")
     .IsDependentOn("Build-Linux")
     .Does(async context => 
 {
-    AzureFileClient.UploadArtifacts(context, version);
+    await AzureFileClient.UploadArtifacts(context, version);
 
     // Building on Linux?
     if(context.Environment.Platform.Family == PlatformFamily.Linux)
     {
         // Upload MUSL artifacts as well.
-        AzureFileClient.UploadMuslArtifacts(context, version);
+        await AzureFileClient.UploadMuslArtifacts(context, version);
     }
 });
 

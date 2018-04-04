@@ -24,22 +24,20 @@ public class AzureFileClient
         var path = GetTargetDirectory(context, musl).CombineWithFilePath(filename);
 
         // Upload as current version.
-        await AzureFileClient.Upload(context, path, 
+        await AzureFileClient.Upload(context, path, platform,
             platform == "windows" 
                 ? $"cakeup-x86_64-v{version}.exe"
                 : $"cakeup-x86_64-v{version}");
 
         // Overwrite the latest version.
-        await AzureFileClient.Upload(context, path,
+        await AzureFileClient.Upload(context, path, platform,
             platform == "windows" 
                 ? $"cakeup-x86_64-latest.exe"
                 : $"cakeup-x86_64-latest");
     }
 
-    private static async Task Upload(ICakeContext context, FilePath path, string filename)
+    private static async Task Upload(ICakeContext context, FilePath path, string platform, string filename)
     {
-        var platform = GetPlatformName(context);
-
         var connection = context.EnvironmentVariable("CAKEUP_AZURE_STORAGE");
         if(string.IsNullOrWhiteSpace(connection)) 
         {
