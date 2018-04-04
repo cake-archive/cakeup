@@ -97,6 +97,22 @@ Task("Build-Linux")
     .WithCriteria(() => Context.Environment.Platform.Family == PlatformFamily.Linux)
     .Does(context => 
 {
+    // Build Cakeup for Linux.
+    Information("Building for Linux...");
+    StartProcess("cargo", new ProcessSettings {
+        Arguments = new ProcessArgumentBuilder()
+            .Append("build")
+            .Append("--release")
+    });
+
+    // Remove inessential information from executable.
+    // This way we make the binary size smaller.
+    var path = GetTargetDirectory(context);
+    StartProcess("strip", new ProcessSettings {
+        Arguments = new ProcessArgumentBuilder()
+            .Append(path.CombineWithFilePath("cakeup").FullPath)
+    });
+
     EnsureEnvironmentVariable(context, "OPENSSL_STATIC", "1");
     EnsureEnvironmentVariable(context, "OPENSSL_DIR");
 
@@ -109,6 +125,7 @@ Task("Build-Linux")
     });
 
     // Build Cakeup for Linux.
+    Information("Building for Linux (MUSL)...");
     StartProcess("cargo", new ProcessSettings {
         Arguments = new ProcessArgumentBuilder()
             .Append("build")
@@ -118,7 +135,7 @@ Task("Build-Linux")
 
     // Remove inessential information from executable.
     // This way we make the binary size smaller.
-    var path = GetTargetDirectory(context);
+    path = GetTargetDirectory(context);
     StartProcess("strip", new ProcessSettings {
         Arguments = new ProcessArgumentBuilder()
             .Append(path.CombineWithFilePath("cakeup").FullPath)
@@ -157,21 +174,14 @@ Task("Deploy")
     .IsDependentOn("Build-Linux")
     .Does(async context => 
 {
-    var platform = GetPlatformName(context);
-    var filename = GetTargetFilename(context);
-    var path = GetTargetDirectory(context).CombineWithFilePath(filename);
+    AzureFileClient.UploadArtifacts(context, version);
 
-    // Upload as current version.
-    await AzureFileClient.Upload(context, path, 
-        platform == "windows" 
-            ? $"cakeup-x86_64-v{version}.exe"
-            : $"cakeup-x86_64-v{version}");
-
-    // Overwrite the latest version.
-    await AzureFileClient.Upload(context, path,
-        platform == "windows" 
-            ? $"cakeup-x86_64-latest.exe"
-            : $"cakeup-x86_64-latest");
+    // Building on Linux?
+    if(context.Environment.Platform.Family == PlatformFamily.Linux)
+    {
+        // Upload MUSL artifacts as well.
+        AzureFileClient.UploadMuslArtifacts(context, version);
+    }
 });
 
 ///////////////////////////////////////////////////////////////////////////////

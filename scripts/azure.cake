@@ -7,7 +7,36 @@ using Microsoft.WindowsAzure.Storage.Blob;
 
 public class AzureFileClient
 {
-    public static async Task Upload(ICakeContext context, FilePath path, string filename)
+    public static async Task UploadArtifacts(ICakeContext context, string version)
+    {
+        await UploadArtifacts(context, version, false);
+    }
+
+    public static async Task UploadMuslArtifacts(ICakeContext context, string version)
+    {
+        await UploadArtifacts(context, version, true);
+    }
+
+    private static async Task UploadArtifacts(ICakeContext context, string version, bool musl)
+    {
+        var platform = GetPlatformName(context, musl);
+        var filename = GetTargetFilename(context);
+        var path = GetTargetDirectory(context, musl).CombineWithFilePath(filename);
+
+        // Upload as current version.
+        await AzureFileClient.Upload(context, path, 
+            platform == "windows" 
+                ? $"cakeup-x86_64-v{version}.exe"
+                : $"cakeup-x86_64-v{version}");
+
+        // Overwrite the latest version.
+        await AzureFileClient.Upload(context, path,
+            platform == "windows" 
+                ? $"cakeup-x86_64-latest.exe"
+                : $"cakeup-x86_64-latest");
+    }
+
+    private static async Task Upload(ICakeContext context, FilePath path, string filename)
     {
         var platform = GetPlatformName(context);
 
