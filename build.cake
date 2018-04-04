@@ -11,7 +11,6 @@ using System.Text.RegularExpressions;
 
 var target = Argument("target", "Default");
 var configuration = Argument("configuration", "Release");
-var strip = HasArgument("strip");
 
 ///////////////////////////////////////////////////////////////////////////////
 // VARIABLES
@@ -106,16 +105,13 @@ Task("Build-Linux")
             .Append("--release")
     });
 
-    if(strip)
-    {
-        // Remove inessential information from executable.
-        // This way we make the binary size smaller.
-        var path = GetTargetDirectory(context);
-        StartProcess("strip", new ProcessSettings {
-            Arguments = new ProcessArgumentBuilder()
-                .Append(path.CombineWithFilePath("cakeup").FullPath)
-        });
-    }
+    // Remove inessential information from executable.
+    // This way we make the binary size smaller.
+    var path = GetTargetDirectory(context);
+    StartProcess("strip", new ProcessSettings {
+        Arguments = new ProcessArgumentBuilder()
+            .Append(path.CombineWithFilePath("cakeup").FullPath)
+    });
 });
 
 Task("Build")
