@@ -94,7 +94,7 @@ fn set_environment_variables(dotnet_path: &PathBuf) {
 }
 
 #[cfg(any(target_os = "macos", target_os = "linux"))]
-fn execute_install_script(dotnet_path: &PathBuf, version: &str) -> Result<(), Error> {
+fn execute_install_script(dotnet_path: &PathBuf, version: &Version) -> Result<(), Error> {
     // Download the installation script.
     let dotnet_script = dotnet_path.join("dotnet-install.sh");
     let dotnet_url = String::from("https://dot.net/v1/dotnet-install.sh");
@@ -103,9 +103,12 @@ fn execute_install_script(dotnet_path: &PathBuf, version: &str) -> Result<(), Er
 
     // Give the script executable permissions.
     process::Command::new("chmod")
-                .arg("+x").arg(version)
+                .arg("+x")
                 .arg(&dotnet_script)
                 .output()?;
+
+    // Convert the version to a string.
+    let version = format!("{}.{}.{}", version.major, version.minor, version.patch);
 
     // Execute the script.
     println!("Installing .NET Core SDK...");
