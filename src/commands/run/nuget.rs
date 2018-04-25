@@ -16,11 +16,15 @@ pub fn install(config: &Config) -> Result<(), Error> {
             println!("Downloading {}...", url);
             http::download(&url, &file, Some("Cakeup"))?;
 
-            // Give the script executable permissions.
-            process::Command::new("chmod")
-                        .arg("+x").arg(version)
-                        .arg(&file)
-                        .output()?;
+            // Running on non-Windows platform?
+            if cfg!(target_os = "linux") ||
+               cfg!(target_os = "macos") {
+                // Give the script executable permissions.
+                process::Command::new("chmod")
+                            .arg("+x").arg(version)
+                            .arg(&file)
+                            .output()?;
+            }
 
             println!("Installed Nuget.");
         } else {
