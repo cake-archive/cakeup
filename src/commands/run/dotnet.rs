@@ -9,6 +9,7 @@ use std::str;
 use std::env;
 use std::path::PathBuf;
 use utils::*;
+use semver::Version;
 
 use super::Config;
 
@@ -18,22 +19,33 @@ pub fn install(config: &Config) -> Result<(), Error> {
         return Ok(());
     }
 
-    // Get the currently installed version.
-    let installed_version = get_installed_version().unwrap_or_else(|_err| {
-        return String::from("");
-    });
-
     // The wanted SDK version already installed?
-    let sdk_version = &config.sdk_version.as_ref().unwrap()[..];
-    if installed_version == sdk_version {
-        println!("Dotnet SDK ({}) is already installed.", &sdk_version);
+    let sdk_version = match Version::parse(&config.sdk_version.as_ref().unwrap()[..]) {
+        Ok(v) => v,
+        Err(_) => return Err(Error::new(ErrorKind::Other, "SDK version is not valid."))
+    };
+
+    // Get the currently installed version.
+    let installed_version = get_installed_version()?;
+    if installed_version >= sdk_version {
+        // Newer version installed.
+        println!("Dotnet SDK {} is already installed (wanted {}).", &installed_version, &sdk_version);
+        return Ok(());
+    } else if installed_version == sdk_version {
+        // Exact version installed.
+        println!("Dotnet SDK {} is already installed.", &sdk_version);
         return Ok(());
     }
 
     // Make sure that the .dotnet directory exists.
     let dotnet_path = config.root.join(".dotnet");
     if !dotnet_path.exists() {
-        println!("Creating .dotnet directory...");
+        fs::create_dir(&dotnet_path)?;
+    }
+    // Make sure the platform directory exists.
+    let platform = platform::get_platform_name()?;
+    let dotnet_path = dotnet_path.join(platform);
+    if !dotnet_path.exists() {
         fs::create_dir(&dotnet_path)?;
     }
 
@@ -46,32 +58,29 @@ pub fn install(config: &Config) -> Result<(), Error> {
     // Get the installed version again.
     println!("Verifying installation...");
     let installed_version = get_installed_version()?;
-    if installed_version != sdk_version {
+    if installed_version < sdk_version {
         return Err(Error::new(ErrorKind::Other, "It looks like dotnet wasn't properly installed."));
+    } else {
+        println!("Dotnet SDK {} has been installed.", &installed_version);
     }
 
     return Ok(());
 }
 
 pub fn should_install(config: &Config) -> bool {
-    return match config.sdk_version {
-        None => false,
-        _ => true
-    }
+    return config.sdk_version.is_some();
 }
 
-fn get_installed_version() -> Result<String, Error> {
+fn get_installed_version() -> Result<Version, Error> {
     // Get the currently installed dotnet version.
-    let output = process::Command::new("dotnet")
-                .arg("--version").output()?;
-
+    let output = process::Command::new("dotnet").arg("--version").output()?;
     if !output.status.success() {
-        return Err(Error::new(ErrorKind::Other, "Could not get installed version."));
+        return Ok(Version::parse("0.0.0").unwrap());
     }
 
     // Same as the wanted version?
     let version = str::from_utf8(&output.stdout).unwrap().trim();
-    return Ok(String::from(version));
+    return Ok(Version::parse(version).unwrap());
 }
 
 fn set_environment_variables(dotnet_path: &PathBuf) {
@@ -110,12 +119,15 @@ fn execute_install_script(dotnet_path: &PathBuf, version: &str) -> Result<(), Er
 }
 
 #[cfg(target_os = "windows")]
-fn execute_install_script(dotnet_path: &PathBuf, version: &str) -> Result<(), Error> {
+fn execute_install_script(dotnet_path: &PathBuf, version: &Version) -> Result<(), Error> {
     // Download the installation script.
     let dotnet_script = dotnet_path.join("dotnet-install.ps1");
     let dotnet_url = String::from("https://dot.net/v1/dotnet-install.ps1");
     println!("Downloading https://dot.net/v1/dotnet-install.ps1...");
     http::download(&dotnet_url, &dotnet_script, None)?;
+
+    // Convert the version to a string.
+    let version = format!("{}.{}.{}", version.major, version.minor, version.patch);
 
     // Execute the script.
     println!("Installing .NET Core SDK...");

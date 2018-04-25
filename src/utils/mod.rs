@@ -6,3 +6,4 @@ pub mod http;
 pub mod github;
 pub mod zip;
 pub mod version;
+pub mod platform;
