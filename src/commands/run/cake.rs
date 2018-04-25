@@ -120,7 +120,9 @@ pub fn install(config: &Config) -> Result<Option<Cake>, Error> {
         zip::unzip(&cake_nupkg_path, &cake_folder_path)?;
         println!("Installed {} ({}).", flavor, &version);
     } else {
-        println!("{} ({}) is already installed.", flavor, &version);
+        if config.verbose {
+            println!("{} ({}) is already installed.", flavor, &version);
+        }
     }
 
     return Ok(Option::Some(Cake {

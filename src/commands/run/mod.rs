@@ -85,7 +85,9 @@ impl Command for RunCommand {
         // Nothing was done?
         // Tell the user to avoid confusion.
         if executed_commands == 0 {
-            println!("No action was performed.");
+            if config.verbose {
+                println!("No action was performed.");
+            }
         }
 
         return Ok(());

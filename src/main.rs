@@ -28,6 +28,7 @@ fn main() {
             .arg(Arg::with_name("execute").long("execute").help("Executes the Cake script."))
             .arg(Arg::with_name("bootstrap").long("bootstrap").help("Bootstraps Cake modules."))
             .arg(Arg::with_name("coreclr").long("coreclr").help("Use the CoreCLR version of Cake."))
+            .arg(Arg::with_name("verbose").long("verbose").help("Useful when debugging issues with Cakeup."))
             .arg(Arg::with_name("remaining").multiple(true).last(true)));
 
     // Run the command!

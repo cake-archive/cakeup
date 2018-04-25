@@ -19,49 +19,50 @@ pub fn install(config: &Config) -> Result<(), Error> {
         return Ok(());
     }
 
-    // The wanted SDK version already installed?
+    // Parse the wanted SDK version.
     let sdk_version = match Version::parse(&config.sdk_version.as_ref().unwrap()[..]) {
         Ok(v) => v,
         Err(_) => return Err(Error::new(ErrorKind::Other, "SDK version is not valid."))
     };
 
-    // Get the currently installed version.
-    let installed_version = get_installed_version()?;
+    // Check the currently installed global version.
+    let installed_version = get_installed_version(&config, Option::None)?;
     if installed_version >= sdk_version {
         // Newer version installed.
-        println!("Dotnet SDK {} is already installed (wanted {}).", &installed_version, &sdk_version);
-        return Ok(());
-    } else if installed_version == sdk_version {
-        // Exact version installed.
-        println!("Dotnet SDK {} is already installed.", &sdk_version);
+        if config.verbose {
+            println!("Dotnet SDK {} is already installed globally (wanted {}).", &installed_version, &sdk_version);
+        }
         return Ok(());
     }
 
-    // Make sure that the .dotnet directory exists.
-    let dotnet_path = config.root.join(".dotnet");
-    if !dotnet_path.exists() {
-        fs::create_dir(&dotnet_path)?;
-    }
-    // Make sure the platform directory exists.
-    let platform = platform::get_platform_name()?;
-    let dotnet_path = dotnet_path.join(platform);
-    if !dotnet_path.exists() {
-        fs::create_dir(&dotnet_path)?;
+    // Check the currently installed local version.
+    let dotnet_path = get_local_installation_path(config)?;
+    let installed_version = get_installed_version(&config, Option::Some(&dotnet_path))?;
+    if installed_version >= sdk_version {
+        // Newer version installed.
+        set_environment_variables(&dotnet_path);
+        if config.verbose {
+            println!("Dotnet SDK {} is already installed locally (wanted {}).", &installed_version, &sdk_version);
+        }
+        return Ok(());
     }
 
+    // Make sure that the install directory exists.
+    let dotnet_path = create_install_directory(&config)?;
+    
     // Execute the installation script.
     execute_install_script(&dotnet_path, &sdk_version)?;
-
-    // Set environment variables.
     set_environment_variables(&dotnet_path);
 
-    // Get the installed version again.
+    // Get the installed version again and verify that it's reachable.
     println!("Verifying installation...");
-    let installed_version = get_installed_version()?;
+    let installed_version = get_installed_version(&config, Option::None)?;
     if installed_version < sdk_version {
-        return Err(Error::new(ErrorKind::Other, "It looks like dotnet wasn't properly installed."));
+        return Err(Error::new(ErrorKind::Other, "It looks like Dotnet SDK wasn't properly installed."));
     } else {
-        println!("Dotnet SDK {} has been installed.", &installed_version);
+        if config.verbose {
+            println!("Dotnet SDK {} has been installed.", &installed_version);
+        }
     }
 
     return Ok(());
@@ -71,10 +72,38 @@ pub fn should_install(config: &Config) -> bool {
     return config.sdk_version.is_some();
 }
 
-fn get_installed_version() -> Result<Version, Error> {
+fn get_local_installation_path(config: &Config) -> Result<PathBuf, Error> {
+    let platform = platform::get_platform_name()?;
+    let path = config.root.join(".dotnet").join(platform);
+    return Ok(path);
+}
+
+fn create_install_directory(config: &Config) -> Result<PathBuf, Error> {
+    let dotnet_path = config.root.join(".dotnet");
+    if !dotnet_path.exists() {
+        fs::create_dir(&dotnet_path)?;
+    }
+    let platform = platform::get_platform_name()?;
+    let dotnet_path = dotnet_path.join(platform);
+    if !dotnet_path.exists() {
+        fs::create_dir(&dotnet_path)?;
+    }
+    return Ok(dotnet_path);
+}
+
+fn get_installed_version(config: &Config, path: Option<&PathBuf>) -> Result<Version, Error> {
+
+    let mut command = match path {
+        None => process::Command::new("dotnet"),
+        Some(path) => process::Command::new(path.join("dotnet"))
+    };
+ 
     // Get the currently installed dotnet version.
-    let output = process::Command::new("dotnet").arg("--version").output()?;
+    let output = command.arg("--version").output()?;
     if !output.status.success() {
+        if config.verbose {
+            println!("Could not get installed version of dotnet.");
+        }
         return Ok(Version::parse("0.0.0").unwrap());
     }
 

@@ -25,10 +25,10 @@ pub fn install(config: &Config) -> Result<(), Error> {
                             .arg(&file)
                             .output()?;
             }
-
-            println!("Installed Nuget.");
         } else {
-            println!("Nuget is already installed.");
+            if config.verbose {
+                println!("Nuget is already installed.");
+            }
         }
     }
     return Ok(());
