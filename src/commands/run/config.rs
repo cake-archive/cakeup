@@ -5,7 +5,7 @@
 use std::env;
 use std::path::PathBuf;
 use clap::{App, ArgMatches};
-use utils::log::{self, Log};
+use utils::log::{Log};
 
 pub struct Config {
     pub root: PathBuf,
