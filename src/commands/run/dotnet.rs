@@ -29,9 +29,7 @@ pub fn install(config: &Config) -> Result<(), Error> {
     let installed_version = get_installed_version(&config, Option::None)?;
     if installed_version >= sdk_version {
         // Newer version installed.
-        if config.verbose {
-            println!("Dotnet SDK {} is already installed globally (wanted {}).", &installed_version, &sdk_version);
-        }
+        config.log.info(&format!("Dotnet SDK {} is already installed globally (wanted {}).", &installed_version, &sdk_version))?;
         return Ok(());
     }
 
@@ -41,9 +39,7 @@ pub fn install(config: &Config) -> Result<(), Error> {
     if installed_version >= sdk_version {
         // Newer version installed.
         set_environment_variables(&dotnet_path);
-        if config.verbose {
-            println!("Dotnet SDK {} is already installed locally (wanted {}).", &installed_version, &sdk_version);
-        }
+        config.log.info(&format!("Dotnet SDK {} is already installed locally (wanted {}).", &installed_version, &sdk_version))?;
         return Ok(());
     }
 
@@ -51,18 +47,16 @@ pub fn install(config: &Config) -> Result<(), Error> {
     let dotnet_path = create_install_directory(&config)?;
     
     // Execute the installation script.
-    execute_install_script(&dotnet_path, &sdk_version)?;
+    execute_install_script(&config, &dotnet_path, &sdk_version)?;
     set_environment_variables(&dotnet_path);
 
     // Get the installed version again and verify that it's reachable.
-    println!("Verifying installation...");
+    config.log.info("Verifying installation...")?;
     let installed_version = get_installed_version(&config, Option::None)?;
     if installed_version < sdk_version {
         return Err(Error::new(ErrorKind::Other, "It looks like Dotnet SDK wasn't properly installed."));
     } else {
-        if config.verbose {
-            println!("Dotnet SDK {} has been installed.", &installed_version);
-        }
+        config.log.info(&format!("Dotnet SDK {} has been installed.", &installed_version))?;
     }
 
     return Ok(());
@@ -101,9 +95,7 @@ fn get_installed_version(config: &Config, path: Option<&PathBuf>) -> Result<Vers
     // Get the currently installed dotnet version.
     let output = command.arg("--version").output()?;
     if !output.status.success() {
-        if config.verbose {
-            println!("Could not get installed version of dotnet.");
-        }
+        config.log.info(&format!("Could not get installed version of dotnet."))?;
         return Ok(Version::parse("0.0.0").unwrap());
     }
 
@@ -123,11 +115,11 @@ fn set_environment_variables(dotnet_path: &PathBuf) {
 }
 
 #[cfg(any(target_os = "macos", target_os = "linux"))]
-fn execute_install_script(dotnet_path: &PathBuf, version: &Version) -> Result<(), Error> {
+fn execute_install_script(config: &Config, dotnet_path: &PathBuf, version: &Version) -> Result<(), Error> {
     // Download the installation script.
     let dotnet_script = dotnet_path.join("dotnet-install.sh");
     let dotnet_url = String::from("https://dot.net/v1/dotnet-install.sh");
-    println!("Downloading https://dot.net/v1/dotnet-install.sh...");
+    config.log.info("Downloading https://dot.net/v1/dotnet-install.sh...")?;
     http::download(&dotnet_url, &dotnet_script, None)?;
 
     // Give the script executable permissions.
@@ -140,7 +132,7 @@ fn execute_install_script(dotnet_path: &PathBuf, version: &Version) -> Result<()
     let version = format!("{}.{}.{}", version.major, version.minor, version.patch);
 
     // Execute the script.
-    println!("Installing .NET Core SDK...");
+    config.log.info("Installing .NET Core SDK...")?;
     process::Command::new(&dotnet_script)
                 .arg("--version").arg(version)
                 .arg("--install-dir").arg(&dotnet_path)
@@ -151,18 +143,18 @@ fn execute_install_script(dotnet_path: &PathBuf, version: &Version) -> Result<()
 }
 
 #[cfg(target_os = "windows")]
-fn execute_install_script(dotnet_path: &PathBuf, version: &Version) -> Result<(), Error> {
+fn execute_install_script(config: &Config, dotnet_path: &PathBuf, version: &Version) -> Result<(), Error> {
     // Download the installation script.
     let dotnet_script = dotnet_path.join("dotnet-install.ps1");
     let dotnet_url = String::from("https://dot.net/v1/dotnet-install.ps1");
-    println!("Downloading https://dot.net/v1/dotnet-install.ps1...");
+    config.log.info("Downloading https://dot.net/v1/dotnet-install.ps1...")?;
     http::download(&dotnet_url, &dotnet_script, None)?;
 
     // Convert the version to a string.
     let version = format!("{}.{}.{}", version.major, version.minor, version.patch);
 
     // Execute the script.
-    println!("Installing .NET Core SDK...");
+    config.log.info("Installing .NET Core SDK...")?;
     process::Command::new("powershell")
                 .arg("-NoProfile")
                 .arg("-File").arg(dotnet_script)

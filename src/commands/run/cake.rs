@@ -35,7 +35,7 @@ impl Cake {
     pub fn bootstrap(&self, config: &Config) -> Result<(), Error> {
         // Is bootstrapping supported?
         if self.version < Version::parse("0.24.0").unwrap() {
-            println!("Warning: Bootstrapping requires at lest verison 0.24.0 of Cake.");
+            config.log.warning("Bootstrapping requires at lest verison 0.24.0 of Cake.")?;
             return Ok(());
         }
 
@@ -43,12 +43,12 @@ impl Cake {
         let remaining = &config.remaining;
         args.extend(remaining.iter().cloned());
 
-        println!("Bootstrapping script ({})...", self.host.get_name());
+        config.log.info(&format!("Bootstrapping script ({})...", self.host.get_name()))?;
         return self.execute_script(&args);
     }
 
     pub fn execute(&self, config: &Config) -> Result<(), Error> {
-        println!("Executing script ({})...", self.host.get_name());
+        config.log.info(&format!("Executing script ({})...", self.host.get_name()))?;
         return self.execute_script(&config.remaining);
     }
 
@@ -86,7 +86,7 @@ pub fn install(config: &Config) -> Result<Option<Cake>, Error> {
     // Get the version we're going to use.
     let mut version = String::from(&config.cake_version.as_ref().unwrap()[..]);
     if version == "latest" {
-        println!("Figuring out what the latest release of Cake is...");
+        config.log.info(&format!("Figuring out what the latest release of Cake is..."))?;
         let release = github::get_latest_release("cake-build", "cake")?;
         version = String::from(&release.name[1..]); // Github releases are prefixed with "v".
     }
@@ -95,9 +95,7 @@ pub fn install(config: &Config) -> Result<Option<Cake>, Error> {
     let flavor = get_cake_flavor(config);
 
     // Get the folder to where Cake should be installed.
-    let cake_folder_path = config
-        .tools
-        .join(format!("{0}.{1}", flavor.to_lowercase(), version));
+    let cake_folder_path = config.tools.join(format!("{0}.{1}", flavor.to_lowercase(), version));
 
     // Do we need to download Cake?
     if !cake_folder_path.exists() {
@@ -107,7 +105,7 @@ pub fn install(config: &Config) -> Result<Option<Cake>, Error> {
                 "https://www.nuget.org/api/v2/package/{0}/{1}",
                 flavor, version
             );
-            println!("Downloading {}...", url);
+            config.log.info(&format!("Downloading {}...", url))?;
             http::download(
                 &url,
                 &cake_nupkg_path,
@@ -116,13 +114,11 @@ pub fn install(config: &Config) -> Result<Option<Cake>, Error> {
         }
 
         // Nupkg files are just zip files, so unzip it.
-        println!("Unzipping binaries...");
+        config.log.info("Unzipping binaries...")?;
         zip::unzip(&cake_nupkg_path, &cake_folder_path)?;
-        println!("Installed {} ({}).", flavor, &version);
+        config.log.info(&format!("Installed {} ({}).", flavor, &version))?;
     } else {
-        if config.verbose {
-            println!("{} ({}) is already installed.", flavor, &version);
-        }
+        config.log.info(&format!("{} ({}) is already installed.", flavor, &version))?;
     }
 
     return Ok(Option::Some(Cake {

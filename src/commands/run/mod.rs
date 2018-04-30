@@ -85,9 +85,7 @@ impl Command for RunCommand {
         // Nothing was done?
         // Tell the user to avoid confusion.
         if executed_commands == 0 {
-            if config.verbose {
-                println!("No action was performed.");
-            }
+            config.log.info(&format!("No action was performed."))?;
         }
 
         return Ok(());
@@ -96,7 +94,7 @@ impl Command for RunCommand {
 
 fn create_tools_directory(config: &Config) -> Result<(), Error> {
     if !config.tools.exists() {
-        println!("Creating tools directory...");
+        config.log.info("Creating tools directory...")?;
         fs::create_dir(&config.tools.to_str().unwrap())?;
     }
     return Ok(());

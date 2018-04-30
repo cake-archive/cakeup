@@ -5,8 +5,8 @@
 use std::env;
 use std::path::PathBuf;
 use clap::{App, ArgMatches};
+use utils::log::{self, Log};
 
-#[derive(Debug)]
 pub struct Config {
     pub root: PathBuf,
     pub tools: PathBuf,
@@ -16,8 +16,8 @@ pub struct Config {
     pub use_coreclr: bool,
     pub bootstrap: bool,
     pub execute_script: bool,
-    pub verbose: bool,
     pub remaining: Vec<String>,
+    pub log: Log
 }
 
 impl Config {
@@ -34,7 +34,6 @@ impl Config {
         let bootstrap = parse_bool(args, "bootstrap", "CAKEUP_BOOTSTRAP");
         let use_coreclr = parse_bool(args, "coreclr", "CAKEUP_CORECLR");
         let execute_script = parse_bool(args, "execute", "CAKEUP_EXECUTE");
-        let verbose = parse_bool(args, "verbose", "CAKEUP_VERBOSE");
 
         let mut remaining : Vec<String> = vec!();
         let raw_remaining = args.values_of("remaining").map(|vals| vals.collect::<Vec<_>>());
@@ -54,7 +53,7 @@ impl Config {
             use_coreclr,
             execute_script,
             remaining,
-            verbose
+            log: Log {}
         };
     }
 

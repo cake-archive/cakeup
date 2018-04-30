@@ -11,9 +11,10 @@ pub fn install(config: &Config) -> Result<(), Error> {
     if should_install(config) {
         let file = config.tools.join("nuget.exe");
         if !file.exists() {
+            
             let version = config.nuget_version.as_ref().unwrap();
             let url = format!("https://dist.nuget.org/win-x86-commandline/{}/nuget.exe", version);
-            println!("Downloading {}...", url);
+            config.log.info(&format!("Downloading {}...", url))?;
             http::download(&url, &file, Some("Cakeup"))?;
 
             // Running on non-Windows platform?
@@ -26,9 +27,7 @@ pub fn install(config: &Config) -> Result<(), Error> {
                             .output()?;
             }
         } else {
-            if config.verbose {
-                println!("Nuget is already installed.");
-            }
+            config.log.info(&format!("Nuget is already installed."))?;
         }
     }
     return Ok(());
