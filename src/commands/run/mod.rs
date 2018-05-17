@@ -14,7 +14,7 @@ mod nuget;
 
 pub struct RunCommand {}
 impl Command for RunCommand {
-    fn run(&self, app: App) -> Result<(), Error> {
+    fn run(&self, app: App) -> Result<i32, Error> {
 
         // Parse configuration from arguments.
         let config = Config::parse(app);
@@ -48,6 +48,7 @@ impl Command for RunCommand {
         }
 
         // Install Cake.
+        let mut result_code = 0;
         if cake::should_install(&config) {
             let cake = match cake::install(&config) {
                 Ok(c) => c,
@@ -74,9 +75,12 @@ impl Command for RunCommand {
                 // Execute Cake script?
                 if config.execute_script {
                     match cake.execute(&config) {
+                        Ok(n) => { 
+                            result_code = n;
+                            executed_commands += 1;
+                        },
                         Err(e) => return Err(Error::new(ErrorKind::Other,
                             format!("An error occured while running Cake script. {}", e))),
-                        _ => { executed_commands += 1 }
                     };
                 }
             }
@@ -88,7 +92,7 @@ impl Command for RunCommand {
             config.log.info(&format!("No action was performed."))?;
         }
 
-        return Ok(());
+        return Ok(result_code);
     }
 }
 

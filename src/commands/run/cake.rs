@@ -32,11 +32,11 @@ impl Host {
 }
 
 impl Cake {
-    pub fn bootstrap(&self, config: &Config) -> Result<(), Error> {
+    pub fn bootstrap(&self, config: &Config) -> Result<i32, Error> {
         // Is bootstrapping supported?
         if self.version < Version::parse("0.24.0").unwrap() {
-            config.log.warning("Bootstrapping requires at lest verison 0.24.0 of Cake.")?;
-            return Ok(());
+            config.log.warning("Bootstrapping requires at lest version 0.24.0 of Cake.")?;
+            return Ok(-1);
         }
 
         let mut args = vec![String::from("--bootstrap")];
@@ -47,12 +47,12 @@ impl Cake {
         return self.execute_script(&args);
     }
 
-    pub fn execute(&self, config: &Config) -> Result<(), Error> {
+    pub fn execute(&self, config: &Config) -> Result<i32, Error> {
         config.log.info(&format!("Executing script ({})...", self.host.get_name()))?;
         return self.execute_script(&config.remaining);
     }
 
-    fn execute_script(&self, args: &Vec<String>) -> Result<(), Error> {
+    fn execute_script(&self, args: &Vec<String>) -> Result<i32, Error> {
         let result: ExitStatus;
         match self.host {
             Host::Clr => {
@@ -67,14 +67,12 @@ impl Cake {
             }
         };
 
-        if result.code() != Some(0) {
-            return Err(Error::new(
+        return match result.code() {
+            Some(n) => Ok(n),
+            None => Err(Error::new(
                 ErrorKind::Other,
-                format!("Exit code was {}.", result.code().unwrap()),
-            ));
-        }
-
-        return Ok(());
+                "An unknown error occured when executing script."))
+        };
     }
 }
 

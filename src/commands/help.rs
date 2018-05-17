@@ -8,10 +8,10 @@ use commands::Command;
 
 pub struct HelpCommand {}
 impl Command for HelpCommand {
-    fn run(&self, mut app: App) -> Result<(), io::Error> {
+    fn run(&self, mut app: App) -> Result<i32, io::Error> {
         if let &Err(ref e) = &app.print_long_help() {
             panic!("Could not print help: {}", e)
         };
-        return Ok(());
+        return Ok(0);
     }
 }

@@ -32,10 +32,12 @@ fn main() {
 
     // Run the command!
     let command = get_command(&mut app);
-    command.run(app).unwrap_or_else(|err| {
-        eprintln!("{}", err);
-        process::exit(1);
+    let exit_code = command.run(app).unwrap_or_else(|err| {
+        eprintln!("[Cakeup] {}", err);
+        return -1;
     });
+
+    process::exit(exit_code);
 }
 
 fn get_command(app: &mut App) -> Box<Command> {

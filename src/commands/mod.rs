@@ -14,7 +14,7 @@ pub enum CommandType {
 }
 
 pub trait Command {
-    fn run(&self, app: App) -> Result<(), io::Error>;
+    fn run(&self, app: App) -> Result<i32, io::Error>;
 }
 
 pub fn create(command: CommandType) -> Box<Command> {
