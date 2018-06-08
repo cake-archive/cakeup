@@ -18,6 +18,7 @@ public static class Rust
         context.Information("Building ({0})...", target ?? "default");
         context.StartProcess("cargo", new ProcessSettings {
             Arguments = new ProcessArgumentBuilder()
+                .Append("+nightly")
                 .Append("build")
                 .AppendIf(target != null, $"--target={target}")
                 .Append("--release")
