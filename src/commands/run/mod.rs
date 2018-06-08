@@ -10,6 +10,7 @@ use commands::*;
 mod cake;
 mod config;
 mod dotnet;
+mod host;
 mod nuget;
 
 pub struct RunCommand {}

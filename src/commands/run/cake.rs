@@ -4,31 +4,17 @@
 
 use std::io::{Error, ErrorKind};
 use std::path::PathBuf;
-use std::process::{Command, ExitStatus};
+
 use semver::Version;
-use super::Config;
+
 use utils::*;
+use super::Config;
+use super::host::Host;
 
 pub struct Cake {
     pub path: PathBuf,
     pub version: Version,
     pub host: Host,
-}
-
-#[derive(PartialEq)]
-pub enum Host {
-    Clr,
-    CoreClr,
-    Mono,
-}
-impl Host {
-    pub fn get_name(&self) -> &str {
-        match &self {
-            &&Host::Clr => return "CLR",
-            &&Host::CoreClr => return "dotnet",
-            &&Host::Mono => return "mono",
-        }
-    }
 }
 
 impl Cake {
@@ -53,20 +39,8 @@ impl Cake {
     }
 
     fn execute_script(&self, args: &Vec<String>) -> Result<i32, Error> {
-        let result: ExitStatus;
-        match self.host {
-            Host::Clr => {
-                result = Command::new(&self.path).args(args).status()?;
-            }
-            Host::CoreClr | Host::Mono => {
-                let mut host = "dotnet";
-                if self.host == Host::Mono {
-                    host = "mono";
-                }
-                result = Command::new(host).arg(&self.path).args(args).status()?;
-            }
-        };
-
+        &self.host.verify()?; // Verify the host.
+        let result = &self.host.execute(&self.path, args)?;
         return match result.code() {
             Some(n) => Ok(n),
             None => Err(Error::new(
