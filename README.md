@@ -5,7 +5,7 @@ This application will do things like:
 
 * Install Cake
 * Install NuGet.exe
-* Install dotnet SDK
+* Install .NET Core SDK
 * Bootstrap modules
 * Execute script
 
@@ -50,7 +50,7 @@ FLAGS:
 OPTIONS:
         --cake <cake>      The version of Cake to install.
         --nuget <nuget>    The version of NuGet to install.
-        --sdk <sdk>        The version of the dotnet SDK to install.
+        --sdk <sdk>        The version of the .NET Core SDK to install.
 ```
 
 You can also set parameters to cakeup via the following
@@ -72,7 +72,7 @@ CAKEUP_BOOTSTRAP  = "true"
 ### Example 1
 
 Install CoreCLR version of Cake 0.25.0.  
-Also install version 1.1.7 of the dotnet SDK and bootstrap Cake.
+Also install version 1.1.7 of the .NET Core SDK and bootstrap Cake.
 
 ```
 > ./cakeup.exe --cake=0.25.0 --sdk=1.1.7 --coreclr --bootstrap

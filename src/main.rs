@@ -24,7 +24,7 @@ fn main() {
             .about("Runs installation and execution of Cake and related tools")
             .arg(Arg::with_name("cake").takes_value(true).long("cake").help("The version of Cake to install."))
             .arg(Arg::with_name("nuget").takes_value(true).long("nuget").help("The version of NuGet to install."))
-            .arg(Arg::with_name("sdk").takes_value(true).long("sdk").help("The version of the dotnet SDK to install."))
+            .arg(Arg::with_name("sdk").takes_value(true).long("sdk").help("The version of the .NET Core SDK to install."))
             .arg(Arg::with_name("execute").long("execute").help("Executes the Cake script."))
             .arg(Arg::with_name("bootstrap").long("bootstrap").help("Bootstraps Cake modules."))
             .arg(Arg::with_name("coreclr").long("coreclr").help("Use the CoreCLR version of Cake."))
@@ -33,7 +33,7 @@ fn main() {
     // Run the command!
     let command = get_command(&mut app);
     let exit_code = command.run(app).unwrap_or_else(|err| {
-        eprintln!("[Cakeup] {}", err);
+        eprintln!("{}", err);
         return -1;
     });
 
