@@ -16,7 +16,7 @@ pub fn install(config: &Config) -> CakeupResult<()> {
                 "https://dist.nuget.org/win-x86-commandline/{}/nuget.exe",
                 version
             );
-            config.log.info(&format!("Downloading {}...", url))?;
+            info!("Downloading {}...", url);
             http::download(&url, &file, Some("Cakeup"))?;
 
             // Running on non-Windows platform?
@@ -29,7 +29,7 @@ pub fn install(config: &Config) -> CakeupResult<()> {
                     .output()?;
             }
         } else {
-            config.log.info(&format!("Nuget is already installed."))?;
+            info!("Nuget is already installed.");
         }
     }
     return Ok(());

@@ -19,7 +19,7 @@ impl Cake {
     pub fn bootstrap(&self, config: &Config) -> CakeupResult<i32> {
         // Is bootstrapping supported?
         if self.version < Version::parse("0.24.0").unwrap() {
-            config.log.warning("Bootstrapping requires at lest version 0.24.0 of Cake.")?;
+            warn!("Bootstrapping requires at lest version 0.24.0 of Cake.");
             return Ok(-1);
         }
 
@@ -27,16 +27,12 @@ impl Cake {
         let remaining = &config.remaining;
         args.extend(remaining.iter().cloned());
 
-        config.log.info(&format!(
-            "Bootstrapping script ({})...",
-            self.host.get_name()
-        ))?;
-
+        info!("Bootstrapping script ({})...", self.host.get_name());
         return self.execute_script(&args);
     }
 
     pub fn execute(&self, config: &Config) -> CakeupResult<i32> {
-        config.log.info(&format!("Executing script ({})...", self.host.get_name()))?;
+        info!("Executing script ({})...", self.host.get_name());
         return self.execute_script(&config.remaining);
     }
 
@@ -60,9 +56,7 @@ pub fn install(config: &Config) -> CakeupResult<Option<Cake>> {
     // Get the version we're going to use.
     let mut version = String::from(&config.cake_version.as_ref().unwrap()[..]);
     if version == "latest" {
-        config.log.info(&format!(
-            "Figuring out what the latest release of Cake is..."
-        ))?;
+        info!("Figuring out what the latest release of Cake is...");
         let release = http::get_latest_github_release("cake-build", "cake")?;
         version = String::from(&release.name[1..]); // Github releases are prefixed with "v".
     }
@@ -83,7 +77,7 @@ pub fn install(config: &Config) -> CakeupResult<Option<Cake>> {
                 "https://www.nuget.org/api/v2/package/{0}/{1}",
                 flavor, version
             );
-            config.log.info(&format!("Downloading {}...", url))?;
+            info!("Downloading {}...", url);
             http::download(
                 &url,
                 &cake_nupkg_path,
@@ -92,11 +86,11 @@ pub fn install(config: &Config) -> CakeupResult<Option<Cake>> {
         }
 
         // Nupkg files are just zip files, so unzip it.
-        config.log.info("Unzipping binaries...")?;
+        info!("Unzipping binaries...");
         zip::unzip(&cake_nupkg_path, &cake_folder_path)?;
-        config.log.info(&format!("Installed {} ({}).", flavor, &version))?;
+        info!("Installed {} ({}).", flavor, &version);
     } else {
-        config.log.info(&format!("{} ({}) is already installed.", flavor, &version))?;
+        info!("{} ({}) is already installed.", flavor, &version);
     }
 
     return Ok(Option::Some(Cake {

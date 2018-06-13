@@ -33,10 +33,7 @@ pub fn install(config: &Config) -> CakeupResult<()> {
     let installed_version = get_installed_version(Option::None)?;
     if installed_version >= sdk_version {
         // Newer version installed.
-        config.log.info(&format!(
-            ".NET Core SDK v{} is already installed globally (wanted v{}).",
-            &installed_version, &sdk_version
-        ))?;
+        info!(".NET Core SDK v{} is already installed globally (wanted v{}).", &installed_version, &sdk_version);
         return Ok(());
     }
 
@@ -46,10 +43,7 @@ pub fn install(config: &Config) -> CakeupResult<()> {
     if installed_version >= sdk_version {
         // Newer version installed.
         set_environment_variables(&dotnet_path)?;
-        config.log.info(&format!(
-            ".NET Core SDK v{} is already installed locally (wanted v{}).",
-            &installed_version, &sdk_version
-        ))?;
+        info!(".NET Core SDK v{} is already installed locally (wanted v{}).", &installed_version, &sdk_version);
         return Ok(());
     }
 
@@ -57,11 +51,11 @@ pub fn install(config: &Config) -> CakeupResult<()> {
     let dotnet_path = create_install_directory(&config)?;
 
     // Execute the installation script.
-    execute_install_script(&config, &dotnet_path, &sdk_version)?;
+    execute_install_script(&dotnet_path, &sdk_version)?;
     set_environment_variables(&dotnet_path)?;
 
     // Get the installed version again and verify that it's reachable.
-    config.log.info("Verifying installation...")?;
+    info!("Verifying installation...");
     let installed_version = get_installed_version(Option::None)?;
     if installed_version < sdk_version {
         return Err(format_err!(
@@ -70,10 +64,7 @@ pub fn install(config: &Config) -> CakeupResult<()> {
             &sdk_version
         ));
     } else {
-        config.log.info(&format!(
-            "Dotnet SDK v{} has been installed.",
-            &installed_version
-        ))?;
+        info!("Dotnet SDK v{} has been installed.", &installed_version);
     }
 
     return Ok(());
@@ -165,7 +156,6 @@ fn get_path_separator() -> String {
 
 #[cfg(any(target_os = "macos", target_os = "linux"))]
 fn execute_install_script(
-    config: &Config,
     dotnet_path: &PathBuf,
     version: &Version,
 ) -> CakeupResult<()> {
@@ -199,21 +189,20 @@ fn execute_install_script(
 
 #[cfg(target_os = "windows")]
 fn execute_install_script(
-    config: &Config,
     dotnet_path: &PathBuf,
     version: &Version,
 ) -> CakeupResult<()> {
     // Download the installation script.
     let dotnet_script = dotnet_path.join("dotnet-install.ps1");
     let dotnet_url = String::from("https://dot.net/v1/dotnet-install.ps1");
-    config.log.info("Downloading https://dot.net/v1/dotnet-install.ps1...")?;
+    info!("Downloading https://dot.net/v1/dotnet-install.ps1...");
     http::download(&dotnet_url, &dotnet_script, None)?;
 
     // Convert the version to a string.
     let version = format!("{}.{}.{}", version.major, version.minor, version.patch);
 
     // Execute the script.
-    config.log.info(&format!("Installing .NET Core SDK v{}...", version)[..])?;
+    info!("Installing .NET Core SDK v{}...", version);
     process::Command::new("powershell")
         .arg("-NoProfile")
         .arg("-File")

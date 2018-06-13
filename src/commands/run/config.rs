@@ -5,7 +5,6 @@
 use clap::{App, ArgMatches};
 use std::env;
 use std::path::PathBuf;
-use utils::log::Log;
 
 pub struct Config {
     pub root: PathBuf,
@@ -16,8 +15,7 @@ pub struct Config {
     pub use_coreclr: bool,
     pub bootstrap: bool,
     pub execute_script: bool,
-    pub remaining: Vec<String>,
-    pub log: Log,
+    pub remaining: Vec<String>
 }
 
 impl Config {
@@ -54,8 +52,7 @@ impl Config {
             sdk_version,
             use_coreclr,
             execute_script,
-            remaining,
-            log: Log {},
+            remaining
         };
     }
 

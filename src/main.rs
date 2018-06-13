@@ -5,6 +5,8 @@
 #[macro_use]
 extern crate failure;
 #[macro_use]
+extern crate log;
+#[macro_use]
 extern crate serde_derive;
 
 extern crate clap;
@@ -18,6 +20,10 @@ use commands::{Command, CommandType};
 use std::process;
 
 fn main() {
+    // Initialize logging.
+    utils::logger::Logger::init().unwrap();
+
+    // Define arguments.
     let mut app = App::new("cakeup")
         .bin_name("cakeup")
         .about("A binary bootstrapper for Cake.")
@@ -65,7 +71,7 @@ fn main() {
     // Run the command!
     let command = get_command(&mut app);
     let exit_code = command.run(app).unwrap_or_else(|err| {
-        eprintln!("{}", err);
+        error!("{}", err);
         return -1;
     });
 

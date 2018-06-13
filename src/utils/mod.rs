@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 pub mod http;
-pub mod log;
+pub mod logger;
 pub mod platform;
 pub mod version;
 pub mod zip;

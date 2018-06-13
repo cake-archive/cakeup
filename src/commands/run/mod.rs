@@ -113,7 +113,7 @@ impl Command for RunCommand {
         // Nothing was done?
         // Tell the user to avoid confusion.
         if executed_commands == 0 {
-            config.log.info(&format!("No action was performed."))?;
+            info!("No action was performed.");
         }
 
         return Ok(result_code);
@@ -122,7 +122,7 @@ impl Command for RunCommand {
 
 fn create_tools_directory(config: &Config) -> CakeupResult<()> {
     if !config.tools.exists() {
-        config.log.info("Creating tools directory...")?;
+        info!("Creating tools directory...");
         fs::create_dir(&config.tools.to_str().unwrap())?;
     }
     return Ok(());
