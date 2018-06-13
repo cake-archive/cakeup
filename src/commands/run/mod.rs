@@ -2,9 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-use std::fs;
 use self::config::Config;
 use commands::*;
+use std::fs;
 use utils::CakeupResult;
 
 mod cake;
@@ -16,7 +16,6 @@ mod nuget;
 pub struct RunCommand {}
 impl Command for RunCommand {
     fn run(&self, app: App) -> CakeupResult<i32> {
-
         // Parse configuration from arguments.
         let config = Config::parse(app);
         let mut executed_commands = 0;
@@ -24,24 +23,39 @@ impl Command for RunCommand {
         // Create the tools directory.
         if config.should_create_tools_directory() {
             match create_tools_directory(&config) {
-                Err(e) => return Err(format_err!("An error occured while creating the tools folder. {}", e)),
-                _ => { executed_commands += 1 }
+                Err(e) => {
+                    return Err(format_err!(
+                        "An error occured while creating the tools folder. {}",
+                        e
+                    ))
+                }
+                _ => executed_commands += 1,
             };
         }
 
         // NuGet
         if nuget::should_install(&config) {
             match nuget::install(&config) {
-                Err(e) => return Err(format_err!("An error occured while installing NuGet. {}", e)),
-                _ => { executed_commands += 1 }
+                Err(e) => {
+                    return Err(format_err!(
+                        "An error occured while installing NuGet. {}",
+                        e
+                    ))
+                }
+                _ => executed_commands += 1,
             };
         }
 
         // .NET Core SDK
         if dotnet::should_install(&config) {
             match dotnet::install(&config) {
-                Err(e) => return Err(format_err!("An error occured while installing dotnet. {}", e)),
-                _ => { executed_commands += 1 }
+                Err(e) => {
+                    return Err(format_err!(
+                        "An error occured while installing dotnet. {}",
+                        e
+                    ))
+                }
+                _ => executed_commands += 1,
             };
         }
 
@@ -50,7 +64,12 @@ impl Command for RunCommand {
         if cake::should_install(&config) {
             let cake = match cake::install(&config) {
                 Ok(c) => c,
-                Err(e) => return Err(format_err!("An error occured while downloading Cake. {}", e))
+                Err(e) => {
+                    return Err(format_err!(
+                        "An error occured while downloading Cake. {}",
+                        e
+                    ))
+                }
             };
 
             // Increase the number of executed commands.
@@ -63,19 +82,29 @@ impl Command for RunCommand {
                 // Bootstrap Cake?
                 if config.bootstrap {
                     match cake.bootstrap(&config) {
-                        Err(e) => return Err(format_err!("An error occured while bootstrapping Cake script. {}", e)),
-                        _ => { executed_commands += 1 }
+                        Err(e) => {
+                            return Err(format_err!(
+                                "An error occured while bootstrapping Cake script. {}",
+                                e
+                            ))
+                        }
+                        _ => executed_commands += 1,
                     };
                 }
 
                 // Execute Cake script?
                 if config.execute_script {
                     match cake.execute(&config) {
-                        Ok(n) => { 
+                        Ok(n) => {
                             result_code = n;
                             executed_commands += 1;
-                        },
-                        Err(e) => return Err(format_err!("An error occured while executing Cake script. {}", e)),
+                        }
+                        Err(e) => {
+                            return Err(format_err!(
+                                "An error occured while executing Cake script. {}",
+                                e
+                            ))
+                        }
                     };
                 }
             }

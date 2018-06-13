@@ -16,17 +16,17 @@ pub enum Host {
 impl Host {
     pub fn verify(&self) -> CakeupResult<()> {
         match self {
-            Host::Clr => { },
+            Host::Clr => {}
             Host::CoreClr => {
                 let output = Command::new("dotnet").arg("--version").output()?;
                 if !output.status.success() {
-                    return Err(format_err!("Could not locate the .NET Core SDK."))
+                    return Err(format_err!("Could not locate the .NET Core SDK."));
                 }
             }
             Host::Mono => {
                 let output = Command::new("mono").arg("--version").output()?;
                 if !output.status.success() {
-                    return Err(format_err!("Could not locate the Mono runtime."))
+                    return Err(format_err!("Could not locate the Mono runtime."));
                 }
             }
         }

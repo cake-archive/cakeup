@@ -2,10 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+use clap::{App, ArgMatches};
 use std::env;
 use std::path::PathBuf;
-use clap::{App, ArgMatches};
-use utils::log::{Log};
+use utils::log::Log;
 
 pub struct Config {
     pub root: PathBuf,
@@ -17,7 +17,7 @@ pub struct Config {
     pub bootstrap: bool,
     pub execute_script: bool,
     pub remaining: Vec<String>,
-    pub log: Log
+    pub log: Log,
 }
 
 impl Config {
@@ -35,8 +35,10 @@ impl Config {
         let use_coreclr = parse_bool(args, "coreclr", "CAKEUP_CORECLR");
         let execute_script = parse_bool(args, "execute", "CAKEUP_EXECUTE");
 
-        let mut remaining : Vec<String> = vec!();
-        let raw_remaining = args.values_of("remaining").map(|vals| vals.collect::<Vec<_>>());
+        let mut remaining: Vec<String> = vec![];
+        let raw_remaining = args.values_of("remaining")
+            .map(|vals| vals.collect::<Vec<_>>());
+            
         if raw_remaining.is_some() {
             for arg in raw_remaining.unwrap() {
                 remaining.push(String::from(arg));
@@ -53,7 +55,7 @@ impl Config {
             use_coreclr,
             execute_script,
             remaining,
-            log: Log {}
+            log: Log {},
         };
     }
 
@@ -101,7 +103,7 @@ fn parse_bool(matches: &ArgMatches, arg_name: &str, env_name: &str) -> bool {
     if value.is_ok() {
         let value = value.unwrap();
         if value != "" {
-            return value.to_lowercase() == "true"
+            return value.to_lowercase() == "true";
         }
     }
     return false;

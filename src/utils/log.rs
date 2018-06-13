@@ -1,6 +1,6 @@
-use std::io::{self, Write, Error};
+use std::io::{self, Error, Write};
 
-pub struct Log { }
+pub struct Log {}
 impl Log {
     pub fn info(&self, text: &str) -> Result<(), Error> {
         io::stdout().write(text.as_bytes())?;
@@ -8,7 +8,7 @@ impl Log {
         io::stdout().flush()?;
         return Ok(());
     }
-    
+
     pub fn warning(&self, text: &str) -> Result<(), Error> {
         return self.info(&format!("Warning: {}", text));
     }

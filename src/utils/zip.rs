@@ -4,8 +4,8 @@
 
 extern crate unzip;
 
-use std::path::Path;
 use std::fs;
+use std::path::Path;
 
 use utils::CakeupResult;
 

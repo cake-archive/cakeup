@@ -2,12 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-use std::path::PathBuf;
-use semver::Version;
-use utils::*;
-use super::Config;
 use super::host::Host;
+use super::Config;
+use semver::Version;
+use std::path::PathBuf;
 use utils::CakeupResult;
+use utils::*;
 
 pub struct Cake {
     pub path: PathBuf,
@@ -27,7 +27,11 @@ impl Cake {
         let remaining = &config.remaining;
         args.extend(remaining.iter().cloned());
 
-        config.log.info(&format!("Bootstrapping script ({})...", self.host.get_name()))?;
+        config.log.info(&format!(
+            "Bootstrapping script ({})...",
+            self.host.get_name()
+        ))?;
+
         return self.execute_script(&args);
     }
 
@@ -41,7 +45,9 @@ impl Cake {
         let result = &self.host.execute(&self.path, args)?;
         return match result.code() {
             Some(n) => Ok(n),
-            None => Err(format_err!("An unknown error occured when executing script."))
+            None => Err(format_err!(
+                "An unknown error occured when executing script."
+            )),
         };
     }
 }
@@ -54,7 +60,9 @@ pub fn install(config: &Config) -> CakeupResult<Option<Cake>> {
     // Get the version we're going to use.
     let mut version = String::from(&config.cake_version.as_ref().unwrap()[..]);
     if version == "latest" {
-        config.log.info(&format!("Figuring out what the latest release of Cake is..."))?;
+        config.log.info(&format!(
+            "Figuring out what the latest release of Cake is..."
+        ))?;
         let release = http::get_latest_github_release("cake-build", "cake")?;
         version = String::from(&release.name[1..]); // Github releases are prefixed with "v".
     }
@@ -63,7 +71,9 @@ pub fn install(config: &Config) -> CakeupResult<Option<Cake>> {
     let flavor = get_cake_flavor(config);
 
     // Get the folder to where Cake should be installed.
-    let cake_folder_path = config.tools.join(format!("{0}.{1}", flavor.to_lowercase(), version));
+    let cake_folder_path = config
+        .tools
+        .join(format!("{0}.{1}", flavor.to_lowercase(), version));
 
     // Do we need to download Cake?
     if !cake_folder_path.exists() {

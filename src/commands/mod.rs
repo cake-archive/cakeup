@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-use clap::{App};
+use clap::App;
 use utils::CakeupResult;
 
 mod help;
@@ -10,7 +10,7 @@ mod run;
 
 pub enum CommandType {
     Run,
-    Help
+    Help,
 }
 
 pub trait Command {
@@ -19,7 +19,7 @@ pub trait Command {
 
 pub fn create(command: CommandType) -> Box<Command> {
     return match command {
-        CommandType::Run => Box::new(run::RunCommand { }),
-        CommandType::Help => Box::new(help::HelpCommand {})
-    }
+        CommandType::Run => Box::new(run::RunCommand {}),
+        CommandType::Help => Box::new(help::HelpCommand {}),
+    };
 }

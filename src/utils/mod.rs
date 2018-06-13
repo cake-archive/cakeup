@@ -8,6 +8,6 @@ pub mod platform;
 pub mod version;
 pub mod zip;
 
-use failure::{Error};
+use failure::Error;
 
 pub type CakeupResult<T> = Result<T, Error>;

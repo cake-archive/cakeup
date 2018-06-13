@@ -2,20 +2,19 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+use semver::Version;
+use std::env;
 use std::fs;
+use std::path::PathBuf;
 use std::process;
 use std::str;
-use std::env;
-use std::path::PathBuf;
 use utils::*;
-use semver::Version;
 
 use super::Config;
-use utils::CakeupResult;
 use failure;
+use utils::CakeupResult;
 
 pub fn install(config: &Config) -> CakeupResult<()> {
-
     if !should_install(config) {
         return Ok(());
     }
@@ -23,14 +22,21 @@ pub fn install(config: &Config) -> CakeupResult<()> {
     // Parse the wanted SDK version.
     let sdk_version = match Version::parse(&config.sdk_version.as_ref().unwrap()[..]) {
         Ok(v) => v,
-        Err(_) => return Err(failure::err_msg("Provided .NET Core SDK version is not valid."))
+        Err(_) => {
+            return Err(failure::err_msg(
+                "Provided .NET Core SDK version is not valid.",
+            ))
+        }
     };
 
     // Check the currently installed global version.
     let installed_version = get_installed_version(Option::None)?;
     if installed_version >= sdk_version {
         // Newer version installed.
-        config.log.info(&format!(".NET Core SDK v{} is already installed globally (wanted v{}).", &installed_version, &sdk_version))?;
+        config.log.info(&format!(
+            ".NET Core SDK v{} is already installed globally (wanted v{}).",
+            &installed_version, &sdk_version
+        ))?;
         return Ok(());
     }
 
@@ -40,13 +46,16 @@ pub fn install(config: &Config) -> CakeupResult<()> {
     if installed_version >= sdk_version {
         // Newer version installed.
         set_environment_variables(&dotnet_path)?;
-        config.log.info(&format!(".NET Core SDK v{} is already installed locally (wanted v{}).", &installed_version, &sdk_version))?;
+        config.log.info(&format!(
+            ".NET Core SDK v{} is already installed locally (wanted v{}).",
+            &installed_version, &sdk_version
+        ))?;
         return Ok(());
     }
 
     // Make sure that the install directory exists.
     let dotnet_path = create_install_directory(&config)?;
-    
+
     // Execute the installation script.
     execute_install_script(&config, &dotnet_path, &sdk_version)?;
     set_environment_variables(&dotnet_path)?;
@@ -55,9 +64,16 @@ pub fn install(config: &Config) -> CakeupResult<()> {
     config.log.info("Verifying installation...")?;
     let installed_version = get_installed_version(Option::None)?;
     if installed_version < sdk_version {
-        return Err(format_err!("Found v{} on PATH but wanted v{}.", &installed_version, &sdk_version));
+        return Err(format_err!(
+            "Found v{} on PATH but wanted v{}.",
+            &installed_version,
+            &sdk_version
+        ));
     } else {
-        config.log.info(&format!("Dotnet SDK v{} has been installed.", &installed_version))?;
+        config.log.info(&format!(
+            "Dotnet SDK v{} has been installed.",
+            &installed_version
+        ))?;
     }
 
     return Ok(());
@@ -89,14 +105,14 @@ fn create_install_directory(config: &Config) -> CakeupResult<PathBuf> {
 fn get_installed_version(path: Option<&PathBuf>) -> CakeupResult<Version> {
     let mut command = match path {
         None => process::Command::new("dotnet"),
-        Some(path) => process::Command::new(path.join("dotnet"))
+        Some(path) => process::Command::new(path.join("dotnet")),
     };
- 
+
     // Get the currently installed dotnet version.
     command.arg("--version");
     let version = match execute_and_return_output(&mut command) {
         Some(v) => v,
-        None => String::from("0.0.0")
+        None => String::from("0.0.0"),
     };
 
     return Ok(Version::parse(&version[..]).unwrap());
@@ -110,17 +126,25 @@ fn execute_and_return_output(command: &mut process::Command) -> Option<String> {
             }
             return match str::from_utf8(&result.stdout) {
                 Ok(output) => Option::Some(String::from(output)),
-                Err(_) => Option::None
-            }
-        },
-        Err(_) => return Option::None
+                Err(_) => Option::None,
+            };
+        }
+        Err(_) => return Option::None,
     };
 }
 
 fn set_environment_variables(dotnet_path: &PathBuf) -> CakeupResult<()> {
     // Update the environment path.
     let env_path = &env::var("PATH").unwrap()[..];
-    env::set_var("PATH", format!("{}{}{}", dotnet_path.display(), get_path_separator(), env_path));
+    env::set_var(
+        "PATH",
+        format!(
+            "{}{}{}",
+            dotnet_path.display(),
+            get_path_separator(),
+            env_path
+        ),
+    );
 
     // Add the installation directory as the first path.
     env::set_var("DOTNET_SKIP_FIRST_TIME_EXPERIENCE", "1");
@@ -140,7 +164,11 @@ fn get_path_separator() -> String {
 }
 
 #[cfg(any(target_os = "macos", target_os = "linux"))]
-fn execute_install_script(config: &Config, dotnet_path: &PathBuf, version: &Version) -> CakeupResult<()> {
+fn execute_install_script(
+    config: &Config,
+    dotnet_path: &PathBuf,
+    version: &Version,
+) -> CakeupResult<()> {
     // Download the installation script.
     let dotnet_script = dotnet_path.join("dotnet-install.sh");
     let dotnet_url = String::from("https://dot.net/v1/dotnet-install.sh");
@@ -149,9 +177,9 @@ fn execute_install_script(config: &Config, dotnet_path: &PathBuf, version: &Vers
 
     // Give the script executable permissions.
     process::Command::new("chmod")
-                .arg("+x")
-                .arg(&dotnet_script)
-                .output()?;
+        .arg("+x")
+        .arg(&dotnet_script)
+        .output()?;
 
     // Convert the version to a string.
     let version = format!("{}.{}.{}", version.major, version.minor, version.patch);
@@ -159,16 +187,22 @@ fn execute_install_script(config: &Config, dotnet_path: &PathBuf, version: &Vers
     // Execute the script.
     config.log.info(&format!("Installing .NET Core SDK v{}...", version)[..])?;
     process::Command::new(&dotnet_script)
-                .arg("--version").arg(version)
-                .arg("--install-dir").arg(&dotnet_path)
-                .arg("--no-path")
-                .output()?;
+        .arg("--version")
+        .arg(version)
+        .arg("--install-dir")
+        .arg(&dotnet_path)
+        .arg("--no-path")
+        .output()?;
 
     return Ok(());
 }
 
 #[cfg(target_os = "windows")]
-fn execute_install_script(config: &Config, dotnet_path: &PathBuf, version: &Version) -> CakeupResult<()> {
+fn execute_install_script(
+    config: &Config,
+    dotnet_path: &PathBuf,
+    version: &Version,
+) -> CakeupResult<()> {
     // Download the installation script.
     let dotnet_script = dotnet_path.join("dotnet-install.ps1");
     let dotnet_url = String::from("https://dot.net/v1/dotnet-install.ps1");
@@ -181,12 +215,16 @@ fn execute_install_script(config: &Config, dotnet_path: &PathBuf, version: &Vers
     // Execute the script.
     config.log.info(&format!("Installing .NET Core SDK v{}...", version)[..])?;
     process::Command::new("powershell")
-                .arg("-NoProfile")
-                .arg("-File").arg(dotnet_script)
-                .arg("-Channel").arg("current")
-                .arg("-Version").arg(version)
-                .arg("-InstallDir").arg(&dotnet_path)
-                .output()?;
+        .arg("-NoProfile")
+        .arg("-File")
+        .arg(dotnet_script)
+        .arg("-Channel")
+        .arg("current")
+        .arg("-Version")
+        .arg(version)
+        .arg("-InstallDir")
+        .arg(&dotnet_path)
+        .output()?;
 
     return Ok(());
 }

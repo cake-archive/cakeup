@@ -5,24 +5,24 @@
 extern crate curl;
 extern crate serde_json;
 
-use std::str;
-use std::path::Path;
 use self::curl::easy::Easy;
-use std::io::{Write};
+use super::CakeupResult;
 use std::fs;
 use std::fs::File;
-use super::CakeupResult;
+use std::io::Write;
+use std::path::Path;
+use std::str;
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct GitHubRelease {
     pub url: String,
-    pub name: String
+    pub name: String,
 }
 
 pub fn get_latest_github_release<'a>(owner: &str, repo: &str) -> CakeupResult<GitHubRelease> {
     let url = format!("https://api.github.com/repos/{}/{}/releases", owner, repo);
     let json = get(&url, Some("cakeup"))?;
-    let releases : Vec<GitHubRelease> = serde_json::from_str(&json)?;
+    let releases: Vec<GitHubRelease> = serde_json::from_str(&json)?;
     return Ok(releases.first().unwrap().clone());
 }
 
@@ -59,7 +59,7 @@ pub fn download(uri: &String, path: &Path, user_agent: Option<&str>) -> CakeupRe
 
     // Add user agent?
     match user_agent {
-        None => { },
+        None => {}
         Some(ref agent_name) => {
             let mut list = curl::easy::List::new();
             list.append(&format!("User-Agent: {}", agent_name)[..])?;
@@ -78,7 +78,10 @@ pub fn download(uri: &String, path: &Path, user_agent: Option<&str>) -> CakeupRe
     let response = handle.response_code()?;
     if response != 200 {
         fs::remove_file(path)?; // Delete the file.
-        return Err(format_err!("Expected status code 200 but received {}.", response));
+        return Err(format_err!(
+            "Expected status code 200 but received {}.",
+            response
+        ));
     }
 
     return Ok(());

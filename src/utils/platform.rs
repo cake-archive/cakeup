@@ -3,7 +3,7 @@ use super::CakeupResult;
 pub enum Platform {
     Windows,
     Linux,
-    MacOS
+    MacOS,
 }
 
 pub fn get_platform_name() -> CakeupResult<String> {
@@ -11,17 +11,17 @@ pub fn get_platform_name() -> CakeupResult<String> {
         Ok(Platform::Windows) => Ok(String::from("windows")),
         Ok(Platform::Linux) => Ok(String::from("linux")),
         Ok(Platform::MacOS) => Ok(String::from("macos")),
-        Err(e) => Err(e)
+        Err(e) => Err(e),
     };
 }
 
 pub fn get_platform() -> CakeupResult<Platform> {
     if cfg!(target_os = "windows") {
-        return Ok(Platform::Windows)
+        return Ok(Platform::Windows);
     } else if cfg!(target_os = "linux") {
-        return Ok(Platform::Linux)
+        return Ok(Platform::Linux);
     } else if cfg!(target_os = "macos") {
-        return Ok(Platform::MacOS)
+        return Ok(Platform::MacOS);
     }
     return Err(format_err!("Could not get platform."));
 }
