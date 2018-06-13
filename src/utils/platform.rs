@@ -1,4 +1,4 @@
-use std::io::{Error, ErrorKind};
+use super::CakeupResult;
 
 pub enum Platform {
     Windows,
@@ -6,7 +6,7 @@ pub enum Platform {
     MacOS
 }
 
-pub fn get_platform_name() -> Result<String, Error> {
+pub fn get_platform_name() -> CakeupResult<String> {
     return match get_platform() {
         Ok(Platform::Windows) => Ok(String::from("windows")),
         Ok(Platform::Linux) => Ok(String::from("linux")),
@@ -15,7 +15,7 @@ pub fn get_platform_name() -> Result<String, Error> {
     };
 }
 
-pub fn get_platform() -> Result<Platform, Error> {
+pub fn get_platform() -> CakeupResult<Platform> {
     if cfg!(target_os = "windows") {
         return Ok(Platform::Windows)
     } else if cfg!(target_os = "linux") {
@@ -23,5 +23,5 @@ pub fn get_platform() -> Result<Platform, Error> {
     } else if cfg!(target_os = "macos") {
         return Ok(Platform::MacOS)
     }
-    return Err(Error::new(ErrorKind::Other, "Could not get platform."));
+    return Err(format_err!("Could not get platform."));
 }

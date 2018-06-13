@@ -5,10 +5,11 @@
 extern crate unzip;
 
 use std::path::Path;
-use std::io::*;
 use std::fs;
 
-pub fn unzip(input: &Path, output: &Path) -> Result<()> {
+use utils::CakeupResult;
+
+pub fn unzip(input: &Path, output: &Path) -> CakeupResult<()> {
     let file = fs::File::open(&input)?;
     let unzipper = unzip::Unzipper::new(&file, &output);
     unzipper.unzip()?;

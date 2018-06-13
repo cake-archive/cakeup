@@ -2,10 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#[macro_use] extern crate failure;
+#[macro_use] extern crate serde_derive;
+
 extern crate clap;
 extern crate semver;
-#[macro_use]
-extern crate serde_derive;
 
 mod commands;
 mod utils;

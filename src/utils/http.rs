@@ -3,15 +3,30 @@
 // See the LICENSE file in the project root for more information.
 
 extern crate curl;
+extern crate serde_json;
 
 use std::str;
 use std::path::Path;
 use self::curl::easy::Easy;
-use std::io::{Write, Error, ErrorKind};
+use std::io::{Write};
 use std::fs;
 use std::fs::File;
+use super::CakeupResult;
 
-pub fn get(uri: &String, user_agent: Option<&str>) -> Result<String, Error> {
+#[derive(Serialize, Deserialize, Clone)]
+pub struct GitHubRelease {
+    pub url: String,
+    pub name: String
+}
+
+pub fn get_latest_github_release<'a>(owner: &str, repo: &str) -> CakeupResult<GitHubRelease> {
+    let url = format!("https://api.github.com/repos/{}/{}/releases", owner, repo);
+    let json = get(&url, Some("cakeup"))?;
+    let releases : Vec<GitHubRelease> = serde_json::from_str(&json)?;
+    return Ok(releases.first().unwrap().clone());
+}
+
+pub fn get(uri: &String, user_agent: Option<&str>) -> CakeupResult<String> {
     let mut handle = Easy::new();
     handle.follow_location(true)?; // Follow redirects.
     handle.url(uri)?; // Set the URL.
@@ -37,7 +52,7 @@ pub fn get(uri: &String, user_agent: Option<&str>) -> Result<String, Error> {
     return Ok(content);
 }
 
-pub fn download(uri: &String, path: &Path, user_agent: Option<&str>) -> Result<(), Error> {
+pub fn download(uri: &String, path: &Path, user_agent: Option<&str>) -> CakeupResult<()> {
     let mut handle = Easy::new();
     handle.follow_location(true)?; // Follow redirects.
     handle.url(uri)?; // Set the URL.
@@ -63,10 +78,7 @@ pub fn download(uri: &String, path: &Path, user_agent: Option<&str>) -> Result<(
     let response = handle.response_code()?;
     if response != 200 {
         fs::remove_file(path)?; // Delete the file.
-        return Err(Error::new(
-            ErrorKind::Other,
-            format!("Expected status code 200 but received {}.", response),
-        ));
+        return Err(format_err!("Expected status code 200 but received {}.", response));
     }
 
     return Ok(());

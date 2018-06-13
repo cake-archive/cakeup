@@ -2,12 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-use std::io::{Error};
 use std::process;
 use super::Config;
 use utils::*;
+use utils::CakeupResult;
 
-pub fn install(config: &Config) -> Result<(), Error> {
+pub fn install(config: &Config) -> CakeupResult<()> {
     if should_install(config) {
         let file = config.tools.join("nuget.exe");
         if !file.exists() {

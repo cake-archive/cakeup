@@ -3,9 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 use std::fs;
-use std::io::{Error,ErrorKind};
 use self::config::Config;
 use commands::*;
+use utils::CakeupResult;
 
 mod cake;
 mod config;
@@ -15,7 +15,7 @@ mod nuget;
 
 pub struct RunCommand {}
 impl Command for RunCommand {
-    fn run(&self, app: App) -> Result<i32, Error> {
+    fn run(&self, app: App) -> CakeupResult<i32> {
 
         // Parse configuration from arguments.
         let config = Config::parse(app);
@@ -24,8 +24,7 @@ impl Command for RunCommand {
         // Create the tools directory.
         if config.should_create_tools_directory() {
             match create_tools_directory(&config) {
-                Err(e) => return Err(Error::new(ErrorKind::Other,
-                    format!("An error occured while creating the tools folder. {}", e))),
+                Err(e) => return Err(format_err!("An error occured while creating the tools folder. {}", e)),
                 _ => { executed_commands += 1 }
             };
         }
@@ -33,8 +32,7 @@ impl Command for RunCommand {
         // NuGet
         if nuget::should_install(&config) {
             match nuget::install(&config) {
-                Err(e) => return Err(Error::new(ErrorKind::Other,
-                    format!("An error occured while installing NuGet. {}", e))),
+                Err(e) => return Err(format_err!("An error occured while installing NuGet. {}", e)),
                 _ => { executed_commands += 1 }
             };
         }
@@ -42,8 +40,7 @@ impl Command for RunCommand {
         // .NET Core SDK
         if dotnet::should_install(&config) {
             match dotnet::install(&config) {
-                Err(e) => return Err(Error::new(ErrorKind::Other,
-                    format!("An error occured while installing dotnet. {}", e))),
+                Err(e) => return Err(format_err!("An error occured while installing dotnet. {}", e)),
                 _ => { executed_commands += 1 }
             };
         }
@@ -53,8 +50,7 @@ impl Command for RunCommand {
         if cake::should_install(&config) {
             let cake = match cake::install(&config) {
                 Ok(c) => c,
-                Err(e) => return Err(Error::new(ErrorKind::Other,
-                    format!("An error occured while downloading Cake. {}", e)))
+                Err(e) => return Err(format_err!("An error occured while downloading Cake. {}", e))
             };
 
             // Increase the number of executed commands.
@@ -67,8 +63,7 @@ impl Command for RunCommand {
                 // Bootstrap Cake?
                 if config.bootstrap {
                     match cake.bootstrap(&config) {
-                        Err(e) => return Err(Error::new(ErrorKind::Other,
-                            format!("An error occured while bootstrapping Cake script. {}", e))),
+                        Err(e) => return Err(format_err!("An error occured while bootstrapping Cake script. {}", e)),
                         _ => { executed_commands += 1 }
                     };
                 }
@@ -80,8 +75,7 @@ impl Command for RunCommand {
                             result_code = n;
                             executed_commands += 1;
                         },
-                        Err(e) => return Err(Error::new(ErrorKind::Other,
-                            format!("An error occured while running Cake script. {}", e))),
+                        Err(e) => return Err(format_err!("An error occured while executing Cake script. {}", e)),
                     };
                 }
             }
@@ -97,7 +91,7 @@ impl Command for RunCommand {
     }
 }
 
-fn create_tools_directory(config: &Config) -> Result<(), Error> {
+fn create_tools_directory(config: &Config) -> CakeupResult<()> {
     if !config.tools.exists() {
         config.log.info("Creating tools directory...")?;
         fs::create_dir(&config.tools.to_str().unwrap())?;

@@ -2,9 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-use std::io::{Error, ErrorKind};
 use std::path::PathBuf;
 use std::process::{Command, ExitStatus};
+use utils::CakeupResult;
 
 #[derive(PartialEq)]
 pub enum Host {
@@ -14,26 +14,26 @@ pub enum Host {
 }
 
 impl Host {
-    pub fn verify(&self) -> Result<(), Error> {
+    pub fn verify(&self) -> CakeupResult<()> {
         match self {
             Host::Clr => { },
             Host::CoreClr => {
                 let output = Command::new("dotnet").arg("--version").output()?;
                 if !output.status.success() {
-                    return Err(Error::new(ErrorKind::Other, "Could not locate the .NET Core SDK."))
+                    return Err(format_err!("Could not locate the .NET Core SDK."))
                 }
             }
             Host::Mono => {
                 let output = Command::new("mono").arg("--version").output()?;
                 if !output.status.success() {
-                    return Err(Error::new(ErrorKind::Other, "Could not locate the Mono runtime."))
+                    return Err(format_err!("Could not locate the Mono runtime."))
                 }
             }
         }
         return Ok(());
     }
 
-    pub fn execute(&self, path: &PathBuf, args: &Vec<String>) -> Result<ExitStatus, Error> {
+    pub fn execute(&self, path: &PathBuf, args: &Vec<String>) -> CakeupResult<ExitStatus> {
         let result: ExitStatus;
         match self {
             Host::Clr => {

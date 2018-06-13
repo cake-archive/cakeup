@@ -2,14 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-use std::io::{Error, ErrorKind};
 use std::path::PathBuf;
-
 use semver::Version;
-
 use utils::*;
 use super::Config;
 use super::host::Host;
+use utils::CakeupResult;
 
 pub struct Cake {
     pub path: PathBuf,
@@ -18,7 +16,7 @@ pub struct Cake {
 }
 
 impl Cake {
-    pub fn bootstrap(&self, config: &Config) -> Result<i32, Error> {
+    pub fn bootstrap(&self, config: &Config) -> CakeupResult<i32> {
         // Is bootstrapping supported?
         if self.version < Version::parse("0.24.0").unwrap() {
             config.log.warning("Bootstrapping requires at lest version 0.24.0 of Cake.")?;
@@ -33,24 +31,22 @@ impl Cake {
         return self.execute_script(&args);
     }
 
-    pub fn execute(&self, config: &Config) -> Result<i32, Error> {
+    pub fn execute(&self, config: &Config) -> CakeupResult<i32> {
         config.log.info(&format!("Executing script ({})...", self.host.get_name()))?;
         return self.execute_script(&config.remaining);
     }
 
-    fn execute_script(&self, args: &Vec<String>) -> Result<i32, Error> {
+    fn execute_script(&self, args: &Vec<String>) -> CakeupResult<i32> {
         &self.host.verify()?; // Verify the host.
         let result = &self.host.execute(&self.path, args)?;
         return match result.code() {
             Some(n) => Ok(n),
-            None => Err(Error::new(
-                ErrorKind::Other,
-                "An unknown error occured when executing script."))
+            None => Err(format_err!("An unknown error occured when executing script."))
         };
     }
 }
 
-pub fn install(config: &Config) -> Result<Option<Cake>, Error> {
+pub fn install(config: &Config) -> CakeupResult<Option<Cake>> {
     if !should_install(&config) {
         return Ok(Option::None);
     }
@@ -59,7 +55,7 @@ pub fn install(config: &Config) -> Result<Option<Cake>, Error> {
     let mut version = String::from(&config.cake_version.as_ref().unwrap()[..]);
     if version == "latest" {
         config.log.info(&format!("Figuring out what the latest release of Cake is..."))?;
-        let release = github::get_latest_release("cake-build", "cake")?;
+        let release = http::get_latest_github_release("cake-build", "cake")?;
         version = String::from(&release.name[1..]); // Github releases are prefixed with "v".
     }
 

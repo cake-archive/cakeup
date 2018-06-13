@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 use std::fs;
-use std::io::{Error, ErrorKind};
 use std::process;
 use std::str;
 use std::env;
@@ -12,8 +11,10 @@ use utils::*;
 use semver::Version;
 
 use super::Config;
+use utils::CakeupResult;
+use failure;
 
-pub fn install(config: &Config) -> Result<(), Error> {
+pub fn install(config: &Config) -> CakeupResult<()> {
 
     if !should_install(config) {
         return Ok(());
@@ -22,7 +23,7 @@ pub fn install(config: &Config) -> Result<(), Error> {
     // Parse the wanted SDK version.
     let sdk_version = match Version::parse(&config.sdk_version.as_ref().unwrap()[..]) {
         Ok(v) => v,
-        Err(_) => return Err(Error::new(ErrorKind::Other, "Provided .NET Core SDK version is not valid."))
+        Err(_) => return Err(failure::err_msg("Provided .NET Core SDK version is not valid."))
     };
 
     // Check the currently installed global version.
@@ -54,8 +55,7 @@ pub fn install(config: &Config) -> Result<(), Error> {
     config.log.info("Verifying installation...")?;
     let installed_version = get_installed_version(Option::None)?;
     if installed_version < sdk_version {
-        return Err(Error::new(ErrorKind::Other, 
-            format!("Found v{} on PATH but wanted v{}.", &installed_version, &sdk_version)));
+        return Err(format_err!("Found v{} on PATH but wanted v{}.", &installed_version, &sdk_version));
     } else {
         config.log.info(&format!("Dotnet SDK v{} has been installed.", &installed_version))?;
     }
@@ -67,13 +67,13 @@ pub fn should_install(config: &Config) -> bool {
     return config.sdk_version.is_some();
 }
 
-fn get_local_installation_path(config: &Config) -> Result<PathBuf, Error> {
+fn get_local_installation_path(config: &Config) -> CakeupResult<PathBuf> {
     let platform = platform::get_platform_name()?;
     let path = config.root.join(".dotnet").join(platform);
     return Ok(path);
 }
 
-fn create_install_directory(config: &Config) -> Result<PathBuf, Error> {
+fn create_install_directory(config: &Config) -> CakeupResult<PathBuf> {
     let dotnet_path = config.root.join(".dotnet");
     if !dotnet_path.exists() {
         fs::create_dir(&dotnet_path)?;
@@ -86,7 +86,7 @@ fn create_install_directory(config: &Config) -> Result<PathBuf, Error> {
     return Ok(dotnet_path);
 }
 
-fn get_installed_version(path: Option<&PathBuf>) -> Result<Version, Error> {
+fn get_installed_version(path: Option<&PathBuf>) -> CakeupResult<Version> {
     let mut command = match path {
         None => process::Command::new("dotnet"),
         Some(path) => process::Command::new(path.join("dotnet"))
@@ -117,7 +117,7 @@ fn execute_and_return_output(command: &mut process::Command) -> Option<String> {
     };
 }
 
-fn set_environment_variables(dotnet_path: &PathBuf) -> Result<(), Error> {
+fn set_environment_variables(dotnet_path: &PathBuf) -> CakeupResult<()> {
     // Update the environment path.
     let env_path = &env::var("PATH").unwrap()[..];
     env::set_var("PATH", format!("{}{}{}", dotnet_path.display(), get_path_separator(), env_path));
@@ -140,7 +140,7 @@ fn get_path_separator() -> String {
 }
 
 #[cfg(any(target_os = "macos", target_os = "linux"))]
-fn execute_install_script(config: &Config, dotnet_path: &PathBuf, version: &Version) -> Result<(), Error> {
+fn execute_install_script(config: &Config, dotnet_path: &PathBuf, version: &Version) -> CakeupResult<()> {
     // Download the installation script.
     let dotnet_script = dotnet_path.join("dotnet-install.sh");
     let dotnet_url = String::from("https://dot.net/v1/dotnet-install.sh");
@@ -168,7 +168,7 @@ fn execute_install_script(config: &Config, dotnet_path: &PathBuf, version: &Vers
 }
 
 #[cfg(target_os = "windows")]
-fn execute_install_script(config: &Config, dotnet_path: &PathBuf, version: &Version) -> Result<(), Error> {
+fn execute_install_script(config: &Config, dotnet_path: &PathBuf, version: &Version) -> CakeupResult<()> {
     // Download the installation script.
     let dotnet_script = dotnet_path.join("dotnet-install.ps1");
     let dotnet_url = String::from("https://dot.net/v1/dotnet-install.ps1");
