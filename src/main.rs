@@ -20,14 +20,12 @@ use commands::{Command, CommandType};
 use std::process;
 
 fn main() {
-    // Initialize logging.
-    utils::logger::Logger::init().unwrap();
-
     // Define arguments.
     let mut app = App::new("cakeup")
         .bin_name("cakeup")
         .about("A binary bootstrapper for Cake.")
         .version(utils::version::VERSION)
+        .arg(Arg::with_name("trace").short("t").long("trace").help("Show trace information."))
         .subcommand(
             SubCommand::with_name("run")
                 .version(utils::version::VERSION)
@@ -80,6 +78,12 @@ fn main() {
 
 fn get_command(app: &mut App) -> Box<Command> {
     let args = app.clone().get_matches(); // get_matches take ownership.
+
+    // Initialize logging.
+    let trace = args.is_present("trace");
+    utils::logger::Logger::init(trace).unwrap();
+
+    // Create the right command.
     return match args.subcommand_name() {
         Some("run") => commands::create(CommandType::Run),
         _ => commands::create(CommandType::Help),

@@ -2,10 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+use std::env;
+use std::path::PathBuf;
+use std::fs;
+
 use super::host::Host;
 use super::Config;
 use semver::Version;
-use std::path::PathBuf;
 use utils::CakeupResult;
 use utils::*;
 
@@ -73,20 +76,11 @@ pub fn install(config: &Config) -> CakeupResult<Option<Cake>> {
     if !cake_folder_path.exists() {
         let cake_nupkg_path = config.tools.join(get_cake_package_name(&config, &version));
         if !cake_nupkg_path.exists() {
-            let url = &format!(
-                "https://www.nuget.org/api/v2/package/{0}/{1}",
-                flavor, version
-            );
-            info!("Downloading {}...", url);
-            http::download(
-                &url,
-                &cake_nupkg_path,
-                Some(&format!("Cakeup NuGet Client/{0}", ::utils::version::VERSION)[..]),
-            )?;
+            download_nuget_package(&cake_nupkg_path, flavor, &version)?;
         }
 
         // Nupkg files are just zip files, so unzip it.
-        info!("Unzipping binaries...");
+        trace!("Unzipping {} binaries...", flavor);
         zip::unzip(&cake_nupkg_path, &cake_folder_path)?;
         info!("Installed {} ({}).", flavor, &version);
     } else {
@@ -102,6 +96,38 @@ pub fn install(config: &Config) -> CakeupResult<Option<Cake>> {
 
 pub fn should_install(config: &Config) -> bool {
     return config.cake_version != None;
+}
+
+fn download_nuget_package(path: &PathBuf, flavor: &str, version: &str) -> CakeupResult<()> {
+    let home = env::home_dir();
+    if home.is_some() {
+        let package_name = flavor.to_lowercase();
+        let package_filename = format!("{}.{}.nupkg", &package_name, version);
+        let packages_path = home.unwrap()
+            .join(".nuget")
+            .join("packages")
+            .join(&package_name)
+            .join(version)
+            .join(&package_filename);
+
+        if packages_path.exists() {
+            trace!("Copying {} package from global package cache...", flavor);
+            let bytes_copied = fs::copy(packages_path, path)?;
+            if bytes_copied > 0 {
+                return Ok(());
+            }
+        }
+    }
+
+    let url = &format!(
+        "https://www.nuget.org/api/v2/package/{0}/{1}",
+        flavor, version
+    );
+    trace!("Downloading {}...", url);
+    let user_agent = &format!("Cakeup NuGet Client/{0}", ::utils::version::VERSION)[..];
+    http::download(&url, &path, Some(user_agent))?;
+
+    return Ok(());
 }
 
 fn get_cake_package_name(config: &Config, version: &String) -> String {

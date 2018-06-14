@@ -162,7 +162,7 @@ fn execute_install_script(
     // Download the installation script.
     let dotnet_script = dotnet_path.join("dotnet-install.sh");
     let dotnet_url = String::from("https://dot.net/v1/dotnet-install.sh");
-    config.log.info("Downloading https://dot.net/v1/dotnet-install.sh...")?;
+    info!("Downloading https://dot.net/v1/dotnet-install.sh...")?;
     http::download(&dotnet_url, &dotnet_script, None)?;
 
     // Give the script executable permissions.
@@ -175,7 +175,7 @@ fn execute_install_script(
     let version = format!("{}.{}.{}", version.major, version.minor, version.patch);
 
     // Execute the script.
-    config.log.info(&format!("Installing .NET Core SDK v{}...", version)[..])?;
+    info!("Installing .NET Core SDK v{}...", version)?;
     process::Command::new(&dotnet_script)
         .arg("--version")
         .arg(version)

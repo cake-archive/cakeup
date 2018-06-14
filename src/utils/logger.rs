@@ -5,9 +5,10 @@ const LOGGER: &'static Logger = &Logger(());
 #[derive(Debug)]
 pub struct Logger(());
 impl Logger {
-    pub fn init() -> Result<(), log::SetLoggerError> {
+    pub fn init(trace: bool) -> Result<(), log::SetLoggerError> {
+        let filter = if trace { LevelFilter::Trace } else { LevelFilter::Info };
         log::set_logger(LOGGER)
-            .map(|()| log::set_max_level(LevelFilter::Info))
+            .map(|()| log::set_max_level(filter))
     }
 }
 
