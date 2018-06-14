@@ -97,9 +97,34 @@ Task("Build")
     }
 });
 
+Task("Smoke-Tests")
+    .IsDependentOn("Build")
+    .Does(context => 
+{
+    var root = GetTargetDirectory(context);
+    var filename = GetTargetFilename(context);
+    var path = MakeAbsolute(root.CombineWithFilePath(filename));
+
+    var exitCode = context.StartProcess(path, new ProcessSettings {
+        WorkingDirectory = root,
+        Arguments = new ProcessArgumentBuilder()
+            .Append("--trace")
+            .Append("run")
+            .Append("--cake=latest")
+            .Append("--nuget=latest")
+            .Append("--sdk=2.1.4")
+            .Append("--coreclr")
+    });
+
+    if(exitCode != 0)
+    {
+        throw new CakeException("Smoke tests failed. See log for more information.");
+    }
+});
+
 Task("Deploy")
     .WithCriteria(() => deploy)
-    .IsDependentOn("Build")
+    .IsDependentOn("Smoke-Tests")
     .Does(async context => 
 {
     await AzureFileClient.UploadArtifacts(context, version);
