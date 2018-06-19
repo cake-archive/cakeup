@@ -4,10 +4,11 @@ extern crate cakeup;
 extern crate clap;
 
 mod commands;
-mod utils;
+mod logger;
+
+use std::process;
 
 use clap::{App, Arg, SubCommand};
-use std::process;
 
 pub fn main() {
     // Define arguments.

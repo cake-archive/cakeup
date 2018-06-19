@@ -4,25 +4,24 @@ extern crate failure;
 extern crate log;
 extern crate semver;
 
-mod utils;
+use std::fs;
 
 pub use config::Config;
-pub use utils::CakeupResult;
 pub use utils::version::VERSION;
-
-use std::fs;
+pub use utils::CakeupResult;
 
 mod cake;
 mod config;
 mod dotnet;
 mod host;
 mod nuget;
+mod utils;
 
 pub fn run(config: Config) -> CakeupResult<i32> {
     // Create the tools directory.
     if config.should_create_tools_directory() {
         match create_tools_directory(&config) {
-            Ok(()) => { }
+            Ok(()) => {}
             Err(e) => {
                 return Err(format_err!(
                     "An error occured while creating the tools folder. {}",
@@ -35,7 +34,7 @@ pub fn run(config: Config) -> CakeupResult<i32> {
     // NuGet
     if nuget::should_install(&config) {
         match nuget::install(&config) {
-            Ok(()) => { },
+            Ok(()) => {}
             Err(e) => {
                 return Err(format_err!(
                     "An error occured while installing NuGet. {}",
@@ -48,7 +47,7 @@ pub fn run(config: Config) -> CakeupResult<i32> {
     // .NET Core SDK
     if dotnet::should_install(&config) {
         match dotnet::install(&config) {
-            Ok(()) => { },
+            Ok(()) => {}
             Err(e) => {
                 return Err(format_err!(
                     "An error occured while installing dotnet. {}",
@@ -78,7 +77,7 @@ pub fn run(config: Config) -> CakeupResult<i32> {
             // Bootstrap Cake?
             if config.bootstrap {
                 match cake.bootstrap(&config) {
-                    Ok(_) => { },
+                    Ok(_) => {}
                     Err(e) => {
                         return Err(format_err!(
                             "An error occured while bootstrapping Cake script. {}",

@@ -4,13 +4,15 @@
 
 extern crate curl;
 
-use self::curl::easy::Easy;
-use super::CakeupResult;
 use std::fs;
 use std::fs::File;
 use std::io::Write;
 use std::path::Path;
 use std::str;
+
+use self::curl::easy::Easy;
+
+use utils::CakeupResult;
 
 pub fn download(uri: &String, path: &Path, user_agent: Option<&str>) -> CakeupResult<()> {
     let mut handle = Easy::new();

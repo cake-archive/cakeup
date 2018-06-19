@@ -2,10 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-use super::Config;
 use std::process;
-use utils::CakeupResult;
-use utils::*;
+
+use utils::{http, CakeupResult};
+use Config;
 
 pub fn install(config: &Config) -> CakeupResult<()> {
     if should_install(config) {

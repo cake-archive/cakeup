@@ -2,6 +2,7 @@
 name = "cakeup"
 version = "0.0.1"
 authors = ["Patrik Svensson <patrik@patriksvensson.se>"]
+autobins = false
 
 [lib]
 name = "cakeup"

@@ -4,6 +4,7 @@
 
 use std::path::PathBuf;
 use std::process::{Command, ExitStatus};
+
 use utils::CakeupResult;
 use Config;
 

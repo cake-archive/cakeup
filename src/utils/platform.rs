@@ -1,4 +1,4 @@
-use super::CakeupResult;
+use utils::CakeupResult;
 
 pub enum Platform {
     Windows,

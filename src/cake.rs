@@ -3,29 +3,35 @@
 // See the LICENSE file in the project root for more information.
 
 use std::env;
-use std::path::PathBuf;
 use std::fs;
+use std::path::PathBuf;
 
 use failure;
 use semver::Version;
 
-use super::host::Host;
-use super::Config;
+use host::Host;
 use utils::CakeupResult;
-use utils::*;
+use utils::{http, zip};
+use Config;
 
 pub struct Package {
     pub name: String,
     pub version: Version,
     pub filename: String,
     pub directory: PathBuf,
-    pub core_clr: bool
+    pub core_clr: bool,
 }
 
 impl Package {
     pub fn new(config: &Config, version: &Version) -> Self {
-        let name = if config.use_coreclr { "Cake.CoreClr" } else { "Cake" };
-        let directory = config.tools.join(format!("{0}.{1}", name.to_lowercase(), version));
+        let name = if config.use_coreclr {
+            "Cake.CoreClr"
+        } else {
+            "Cake"
+        };
+        let directory = config
+            .tools
+            .join(format!("{0}.{1}", name.to_lowercase(), version));
         let filename = format!("{}.{}.nupkg", name.to_lowercase(), version);
         return Package {
             name: name.to_string(),
@@ -99,11 +105,7 @@ pub fn install(config: &Config) -> CakeupResult<Option<Cake>> {
     // Get the version we're going to use.
     let version = match Version::parse(&config.cake_version.as_ref().unwrap()[..]) {
         Ok(v) => v,
-        Err(_) => {
-            return Err(failure::err_msg(
-                "Provided Cake version is not valid.",
-            ))
-        }
+        Err(_) => return Err(failure::err_msg("Provided Cake version is not valid.")),
     };
 
     let package = Package::new(config, &version);
@@ -129,7 +131,10 @@ fn install_package(package: &Package) -> CakeupResult<()> {
         zip::unzip(&cake_nupkg_path, &package.directory)?;
         info!("Installed {} ({}).", package.name, package.version);
     } else {
-        info!("{} ({}) is already installed.", package.name, &package.version);
+        info!(
+            "{} ({}) is already installed.",
+            package.name, &package.version
+        );
     }
     return Ok(());
 }
@@ -138,7 +143,8 @@ fn fetch_package(package: &Package) -> CakeupResult<()> {
     let path = package.get_path();
     let home = env::home_dir();
     if home.is_some() {
-        let packages_path = home.unwrap()
+        let packages_path = home
+            .unwrap()
             .join(".nuget")
             .join("packages")
             .join(&package.name.to_lowercase())
@@ -146,7 +152,10 @@ fn fetch_package(package: &Package) -> CakeupResult<()> {
             .join(&package.filename);
 
         if packages_path.exists() {
-            trace!("Copying {} package from global package cache...", package.name);
+            trace!(
+                "Copying {} package from global package cache...",
+                package.name
+            );
             let bytes_copied = fs::copy(packages_path, &path)?;
             if bytes_copied > 0 {
                 return Ok(());

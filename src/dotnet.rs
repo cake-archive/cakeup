@@ -2,17 +2,18 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-use semver::Version;
 use std::env;
 use std::fs;
 use std::path::PathBuf;
 use std::process;
 use std::str;
-use utils::*;
 
-use super::Config;
 use failure;
+use semver::Version;
+
+use Config;
 use utils::CakeupResult;
+use utils::{http, platform};
 
 pub fn install(config: &Config) -> CakeupResult<()> {
     if !should_install(config) {
@@ -33,7 +34,10 @@ pub fn install(config: &Config) -> CakeupResult<()> {
     let installed_version = get_installed_version(Option::None)?;
     if installed_version >= sdk_version {
         // Newer version installed.
-        info!(".NET Core SDK v{} is already installed globally (wanted v{}).", &installed_version, &sdk_version);
+        info!(
+            ".NET Core SDK v{} is already installed globally (wanted v{}).",
+            &installed_version, &sdk_version
+        );
         return Ok(());
     }
 
@@ -43,7 +47,10 @@ pub fn install(config: &Config) -> CakeupResult<()> {
     if installed_version >= sdk_version {
         // Newer version installed.
         set_environment_variables(&dotnet_path)?;
-        info!(".NET Core SDK v{} is already installed locally (wanted v{}).", &installed_version, &sdk_version);
+        info!(
+            ".NET Core SDK v{} is already installed locally (wanted v{}).",
+            &installed_version, &sdk_version
+        );
         return Ok(());
     }
 
@@ -152,10 +159,7 @@ fn get_path_separator() -> String {
 }
 
 #[cfg(any(target_os = "macos", target_os = "linux"))]
-fn execute_install_script(
-    dotnet_path: &PathBuf,
-    version: &Version,
-) -> CakeupResult<()> {
+fn execute_install_script(dotnet_path: &PathBuf, version: &Version) -> CakeupResult<()> {
     // Download the installation script.
     let dotnet_script = dotnet_path.join("dotnet-install.sh");
     let dotnet_url = String::from("https://dot.net/v1/dotnet-install.sh");
@@ -185,10 +189,7 @@ fn execute_install_script(
 }
 
 #[cfg(target_os = "windows")]
-fn execute_install_script(
-    dotnet_path: &PathBuf,
-    version: &Version,
-) -> CakeupResult<()> {
+fn execute_install_script(dotnet_path: &PathBuf, version: &Version) -> CakeupResult<()> {
     // Download the installation script.
     let dotnet_script = dotnet_path.join("dotnet-install.ps1");
     let dotnet_url = String::from("https://dot.net/v1/dotnet-install.ps1");
