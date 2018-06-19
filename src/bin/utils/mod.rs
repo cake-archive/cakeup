@@ -1,4 +1,4 @@
-use log::{self, Log, Level, LevelFilter};
+use log::{self, Metadata, Log, Level, LevelFilter};
 
 const LOGGER: &'static Logger = &Logger(());
 
@@ -13,7 +13,7 @@ impl Logger {
 }
 
 impl Log for Logger {
-    fn enabled(&self, _: &log::Metadata) -> bool {
+    fn enabled(&self, _: &Metadata) -> bool {
         return true
     }
 

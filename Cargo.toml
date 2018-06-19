@@ -3,6 +3,14 @@ name = "cakeup"
 version = "0.0.1"
 authors = ["Patrik Svensson <patrik@patriksvensson.se>"]
 
+[lib]
+name = "cakeup"
+path = "src/lib.rs"
+
+[[bin]]
+name = "cakeup"
+path = "src/bin/main.rs"
+
 [dependencies]
 clap = "2.31.1"
 curl = "0.4.11"

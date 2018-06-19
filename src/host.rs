@@ -5,7 +5,7 @@
 use std::path::PathBuf;
 use std::process::{Command, ExitStatus};
 use utils::CakeupResult;
-use commands::run::config::Config;
+use Config;
 
 #[derive(PartialEq)]
 pub enum Host {
