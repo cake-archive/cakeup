@@ -12,6 +12,40 @@ use semver::Version;
 use utils::CakeupResult;
 use utils::*;
 
+pub struct Package {
+    pub name: String,
+    pub version: String,
+    pub filename: String,
+    pub directory: PathBuf,
+    pub core_clr: bool
+}
+
+impl Package {
+    pub fn new(config: &Config, version: &str) -> Self {
+        let name = if config.use_coreclr { "Cake.CoreClr" } else { "Cake" };
+        let directory = config.tools.join(format!("{0}.{1}", name.to_lowercase(), version));
+        let filename = format!("{}.{}.nupkg", name.to_lowercase(), version);
+        return Package {
+            name: name.to_string(),
+            version: version.to_string(),
+            core_clr: config.use_coreclr,
+            directory,
+            filename,
+        };
+    }
+
+    pub fn get_path(&self) -> PathBuf {
+        return self.directory.join(&self.filename);
+    }
+
+    pub fn get_url(&self) -> String {
+        return format!(
+            "https://www.nuget.org/api/v2/package/{0}/{1}",
+            self.name, self.version
+        );
+    }
+}
+
 pub struct Cake {
     pub path: PathBuf,
     pub version: Version,
@@ -51,6 +85,10 @@ impl Cake {
     }
 }
 
+pub fn should_install(config: &Config) -> bool {
+    return config.cake_version != None;
+}
+
 pub fn install(config: &Config) -> CakeupResult<Option<Cake>> {
     if !should_install(&config) {
         return Ok(Option::None);
@@ -64,99 +102,58 @@ pub fn install(config: &Config) -> CakeupResult<Option<Cake>> {
         version = String::from(&release.name[1..]); // Github releases are prefixed with "v".
     }
 
-    // Get the "flavor" of Cake to use.
-    let flavor = get_cake_flavor(config);
-
-    // Get the folder to where Cake should be installed.
-    let cake_folder_path = config
-        .tools
-        .join(format!("{0}.{1}", flavor.to_lowercase(), version));
-
-    // Do we need to download Cake?
-    if !cake_folder_path.exists() {
-        let cake_nupkg_path = config.tools.join(get_cake_package_name(&config, &version));
-        if !cake_nupkg_path.exists() {
-            download_nuget_package(&cake_nupkg_path, flavor, &version)?;
-        }
-
-        // Nupkg files are just zip files, so unzip it.
-        trace!("Unzipping {} binaries...", flavor);
-        zip::unzip(&cake_nupkg_path, &cake_folder_path)?;
-        info!("Installed {} ({}).", flavor, &version);
-    } else {
-        info!("{} ({}) is already installed.", flavor, &version);
-    }
+    let package = Package::new(config, &version);
+    install_package(&package)?;
 
     return Ok(Option::Some(Cake {
-        path: cake_folder_path.join(get_cake_filename(config)),
-        version: Version::parse(&version).unwrap(),
-        host: get_host(config),
+        path: package.get_path(),
+        version: Version::parse(&package.version).unwrap(),
+        host: Host::from_config(config),
     }));
 }
 
-pub fn should_install(config: &Config) -> bool {
-    return config.cake_version != None;
+fn install_package(package: &Package) -> CakeupResult<()> {
+    if !package.directory.exists() {
+        trace!("Creating package directory...");
+        fs::create_dir(package.directory.to_str().unwrap())?;
+
+        let cake_nupkg_path = package.get_path();
+        if !cake_nupkg_path.exists() {
+            fetch_package(&package)?;
+        }
+        trace!("Unzipping {} binaries...", package.name);
+        zip::unzip(&cake_nupkg_path, &package.directory)?;
+        info!("Installed {} ({}).", package.name, package.version);
+    } else {
+        info!("{} ({}) is already installed.", package.name, &package.version);
+    }
+    return Ok(());
 }
 
-fn download_nuget_package(path: &PathBuf, flavor: &str, version: &str) -> CakeupResult<()> {
+fn fetch_package(package: &Package) -> CakeupResult<()> {
+    let path = package.get_path();
     let home = env::home_dir();
     if home.is_some() {
-        let package_name = flavor.to_lowercase();
-        let package_filename = format!("{}.{}.nupkg", &package_name, version);
         let packages_path = home.unwrap()
             .join(".nuget")
             .join("packages")
-            .join(&package_name)
-            .join(version)
-            .join(&package_filename);
+            .join(&package.name.to_lowercase())
+            .join(&package.version)
+            .join(&package.filename);
 
         if packages_path.exists() {
-            trace!("Copying {} package from global package cache...", flavor);
-            let bytes_copied = fs::copy(packages_path, path)?;
+            trace!("Copying {} package from global package cache...", package.name);
+            let bytes_copied = fs::copy(packages_path, &path)?;
             if bytes_copied > 0 {
                 return Ok(());
             }
         }
     }
 
-    let url = &format!(
-        "https://www.nuget.org/api/v2/package/{0}/{1}",
-        flavor, version
-    );
+    let url = package.get_url();
     trace!("Downloading {}...", url);
     let user_agent = &format!("Cakeup NuGet Client/{0}", ::utils::version::VERSION)[..];
     http::download(&url, &path, Some(user_agent))?;
 
     return Ok(());
-}
-
-fn get_cake_package_name(config: &Config, version: &String) -> String {
-    let flavor = get_cake_flavor(config);
-    return format!("{}.{}.nupkg", flavor.to_lowercase(), version);
-}
-
-fn get_cake_flavor(config: &Config) -> &str {
-    if config.use_coreclr {
-        return "Cake.CoreClr";
-    } else {
-        return "Cake";
-    };
-}
-
-fn get_cake_filename(config: &Config) -> &str {
-    if config.use_coreclr {
-        return "Cake.dll";
-    } else {
-        return "Cake.exe";
-    };
-}
-
-fn get_host(config: &Config) -> Host {
-    if config.use_coreclr {
-        return Host::CoreClr;
-    } else if cfg!(unix) {
-        return Host::Mono;
-    } else {
-        return Host::Clr;
-    };
 }

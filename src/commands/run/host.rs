@@ -5,6 +5,7 @@
 use std::path::PathBuf;
 use std::process::{Command, ExitStatus};
 use utils::CakeupResult;
+use commands::run::config::Config;
 
 #[derive(PartialEq)]
 pub enum Host {
@@ -14,6 +15,16 @@ pub enum Host {
 }
 
 impl Host {
+    pub fn from_config(config: &Config) -> Self {
+        if config.use_coreclr {
+            return Host::CoreClr;
+        } else if cfg!(unix) {
+            return Host::Mono;
+        } else {
+            return Host::Clr;
+        };
+    }
+
     pub fn verify(&self) -> CakeupResult<()> {
         match self {
             Host::Clr => {}
