@@ -47,7 +47,7 @@ Setup(context =>
 ///////////////////////////////////////////////////////////////////////////////
 
 Task("Patch-Version")
-    .WithCriteria(() => deploy)
+    .WithCriteria(() => deploy, "Not patching version since this is a local build.")
     .Does(() => 
 {
     var path = File("./Cargo.toml").Path;
@@ -57,7 +57,8 @@ Task("Patch-Version")
 });
 
 Task("Build-OpenSSL")
-    .WithCriteria(() => Context.Environment.Platform.Family == PlatformFamily.Linux && musl)
+    .WithCriteria(() => Context.Environment.Platform.Family == PlatformFamily.Linux, "Not on Linux.")
+    .WithCriteria(() => musl, "Argument --skip-musl was set.")
     .Does(context => 
 {
     EnsureEnvironmentVariable(context, "OPENSSL_DIR");
@@ -110,7 +111,7 @@ Task("Smoke-Tests")
         Arguments = new ProcessArgumentBuilder()
             .Append("--trace")
             .Append("run")
-            .Append("--cake=latest")
+            .Append("--cake=0.28.1")
             .Append("--nuget=latest")
             .Append("--sdk=2.1.4")
             .Append("--coreclr")
@@ -123,7 +124,7 @@ Task("Smoke-Tests")
 });
 
 Task("Deploy")
-    .WithCriteria(() => deploy)
+    .WithCriteria(() => deploy, "Not deploying since this is a local build.")
     .IsDependentOn("Smoke-Tests")
     .Does(async context => 
 {
