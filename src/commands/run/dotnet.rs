@@ -144,13 +144,10 @@ fn set_environment_variables(dotnet_path: &PathBuf) -> CakeupResult<()> {
     return Ok(());
 }
 
-#[cfg(any(target_os = "macos", target_os = "linux"))]
 fn get_path_separator() -> String {
-    return String::from(":");
-}
-
-#[cfg(target_os = "windows")]
-fn get_path_separator() -> String {
+    if cfg!(unix) {
+        return String::from(":");
+    }
     return String::from(";");
 }
 
