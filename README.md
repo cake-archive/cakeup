@@ -23,10 +23,11 @@ to keep this around or not.**
 
 ```
 USAGE:
-    cakeup [SUBCOMMAND]
+    cakeup [FLAGS] [SUBCOMMAND]
 
 FLAGS:
     -h, --help       Prints help information
+    -t, --trace      Show trace information.
     -V, --version    Prints version information
 
 SUBCOMMANDS:
@@ -38,7 +39,7 @@ SUBCOMMANDS:
 
 ```
 USAGE:
-    cakeup run [FLAGS] [OPTIONS]
+    cakeup run [FLAGS] [OPTIONS] [-- <remaining>...]
 
 FLAGS:
         --bootstrap    Bootstraps Cake modules.
@@ -51,6 +52,9 @@ OPTIONS:
         --cake <cake>      The version of Cake to install.
         --nuget <nuget>    The version of NuGet to install.
         --sdk <sdk>        The version of the .NET Core SDK to install.
+
+ARGS:
+    <remaining>...    Arguments that will be sent to Cake.
 ```
 
 You can also set parameters to cakeup via the following

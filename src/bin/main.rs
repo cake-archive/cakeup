@@ -6,8 +6,8 @@ extern crate clap;
 mod commands;
 mod utils;
 
-use std::process;
 use clap::{App, Arg, SubCommand};
+use std::process;
 
 pub fn main() {
     // Define arguments.
@@ -58,7 +58,12 @@ pub fn main() {
                         .long("coreclr")
                         .help("Use the CoreCLR version of Cake."),
                 )
-                .arg(Arg::with_name("remaining").multiple(true).last(true)),
+                .arg(
+                    Arg::with_name("remaining")
+                        .help("Arguments that will be sent to Cake.")
+                        .multiple(true)
+                        .last(true),
+                ),
         );
 
     // Run the command!
