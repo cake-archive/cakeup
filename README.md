@@ -63,7 +63,6 @@ parameters directly to cakeup.
 
 ```
 CAKEUP_CAKE       = "0.24.0"
-CAKEUP_SCRIPT     = "test.cake"
 CAKEUP_NUGET      = "latest"
 CAKEUP_SDK        = "1.1.7"
 CAKEUP_EXECUTE    = "true"
