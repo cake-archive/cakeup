@@ -18,44 +18,43 @@ impl Command for RunCommand {
     fn run(&self, app: App) -> CakeupResult<i32> {
         // Parse configuration from arguments.
         let config = Config::parse(app);
-        let mut executed_commands = 0;
 
         // Create the tools directory.
         if config.should_create_tools_directory() {
             match create_tools_directory(&config) {
+                Ok(()) => { }
                 Err(e) => {
                     return Err(format_err!(
                         "An error occured while creating the tools folder. {}",
                         e
                     ))
                 }
-                _ => executed_commands += 1,
             };
         }
 
         // NuGet
         if nuget::should_install(&config) {
             match nuget::install(&config) {
+                Ok(()) => { },
                 Err(e) => {
                     return Err(format_err!(
                         "An error occured while installing NuGet. {}",
                         e
                     ))
                 }
-                _ => executed_commands += 1,
             };
         }
 
         // .NET Core SDK
         if dotnet::should_install(&config) {
             match dotnet::install(&config) {
+                Ok(()) => { },
                 Err(e) => {
                     return Err(format_err!(
                         "An error occured while installing dotnet. {}",
                         e
                     ))
                 }
-                _ => executed_commands += 1,
             };
         }
 
@@ -63,7 +62,7 @@ impl Command for RunCommand {
         let mut result_code = 0;
         if cake::should_install(&config) {
             let cake = match cake::install(&config) {
-                Ok(c) => c,
+                Ok(cake) => cake,
                 Err(e) => {
                     return Err(format_err!(
                         "An error occured while downloading Cake. {}",
@@ -72,9 +71,6 @@ impl Command for RunCommand {
                 }
             };
 
-            // Increase the number of executed commands.
-            executed_commands += 1;
-
             // Was Cake installed?
             if cake.is_some() {
                 let cake = cake.unwrap();
@@ -82,13 +78,13 @@ impl Command for RunCommand {
                 // Bootstrap Cake?
                 if config.bootstrap {
                     match cake.bootstrap(&config) {
+                        Ok(_) => { },
                         Err(e) => {
                             return Err(format_err!(
                                 "An error occured while bootstrapping Cake script. {}",
                                 e
                             ))
                         }
-                        _ => executed_commands += 1,
                     };
                 }
 
@@ -97,7 +93,6 @@ impl Command for RunCommand {
                     match cake.execute(&config) {
                         Ok(n) => {
                             result_code = n;
-                            executed_commands += 1;
                         }
                         Err(e) => {
                             return Err(format_err!(
@@ -108,12 +103,6 @@ impl Command for RunCommand {
                     };
                 }
             }
-        }
-
-        // Nothing was done?
-        // Tell the user to avoid confusion.
-        if executed_commands == 0 {
-            info!("No action was performed.");
         }
 
         return Ok(result_code);

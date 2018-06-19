@@ -152,7 +152,7 @@ fn fetch_package(package: &Package) -> CakeupResult<()> {
 
     let url = package.get_url();
     trace!("Downloading {}...", url);
-    let user_agent = &format!("Cakeup NuGet Client/{0}", ::utils::version::VERSION)[..];
+    let user_agent = &format!("Cakeup NuGet Client/{}", ::utils::version::VERSION)[..];
     http::download(&url, &path, Some(user_agent))?;
 
     return Ok(());
