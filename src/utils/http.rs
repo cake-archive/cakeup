@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 extern crate curl;
-extern crate serde_json;
 
 use self::curl::easy::Easy;
 use super::CakeupResult;
@@ -12,45 +11,6 @@ use std::fs::File;
 use std::io::Write;
 use std::path::Path;
 use std::str;
-
-#[derive(Serialize, Deserialize, Clone)]
-pub struct GitHubRelease {
-    pub url: String,
-    pub name: String,
-}
-
-pub fn get_latest_github_release<'a>(owner: &str, repo: &str) -> CakeupResult<GitHubRelease> {
-    let url = format!("https://api.github.com/repos/{}/{}/releases", owner, repo);
-    let json = get(&url, Some("cakeup"))?;
-    let releases: Vec<GitHubRelease> = serde_json::from_str(&json)?;
-    return Ok(releases.first().unwrap().clone());
-}
-
-pub fn get(uri: &String, user_agent: Option<&str>) -> CakeupResult<String> {
-    let mut handle = Easy::new();
-    handle.follow_location(true)?; // Follow redirects.
-    handle.url(uri)?; // Set the URL.
-
-    // Add user agent?
-    if let Some(agent_name) = user_agent {
-        let mut list = curl::easy::List::new();
-        list.append(&format!("User-Agent: {}", agent_name)[..])?;
-        handle.http_headers(list)?;
-    }
-
-    let mut content: String = String::new();
-    {
-        let mut transfer = handle.transfer();
-        transfer.write_function(|data| {
-            content.push_str(str::from_utf8(data).unwrap());
-            Ok(data.len())
-        })?;
-
-        transfer.perform()?;
-    }
-
-    return Ok(content);
-}
 
 pub fn download(uri: &String, path: &Path, user_agent: Option<&str>) -> CakeupResult<()> {
     let mut handle = Easy::new();

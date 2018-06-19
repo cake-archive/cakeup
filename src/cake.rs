@@ -6,28 +6,30 @@ use std::env;
 use std::path::PathBuf;
 use std::fs;
 
+use failure;
+use semver::Version;
+
 use super::host::Host;
 use super::Config;
-use semver::Version;
 use utils::CakeupResult;
 use utils::*;
 
 pub struct Package {
     pub name: String,
-    pub version: String,
+    pub version: Version,
     pub filename: String,
     pub directory: PathBuf,
     pub core_clr: bool
 }
 
 impl Package {
-    pub fn new(config: &Config, version: &str) -> Self {
+    pub fn new(config: &Config, version: &Version) -> Self {
         let name = if config.use_coreclr { "Cake.CoreClr" } else { "Cake" };
         let directory = config.tools.join(format!("{0}.{1}", name.to_lowercase(), version));
         let filename = format!("{}.{}.nupkg", name.to_lowercase(), version);
         return Package {
             name: name.to_string(),
-            version: version.to_string(),
+            version: version.clone(),
             core_clr: config.use_coreclr,
             directory,
             filename,
@@ -95,19 +97,21 @@ pub fn install(config: &Config) -> CakeupResult<Option<Cake>> {
     }
 
     // Get the version we're going to use.
-    let mut version = String::from(&config.cake_version.as_ref().unwrap()[..]);
-    if version == "latest" {
-        info!("Figuring out what the latest release of Cake is...");
-        let release = http::get_latest_github_release("cake-build", "cake")?;
-        version = String::from(&release.name[1..]); // Github releases are prefixed with "v".
-    }
+    let version = match Version::parse(&config.cake_version.as_ref().unwrap()[..]) {
+        Ok(v) => v,
+        Err(_) => {
+            return Err(failure::err_msg(
+                "Provided Cake version is not valid.",
+            ))
+        }
+    };
 
     let package = Package::new(config, &version);
     install_package(&package)?;
 
     return Ok(Option::Some(Cake {
         path: package.get_path(),
-        version: Version::parse(&package.version).unwrap(),
+        version: package.version.clone(),
         host: Host::from_config(config),
     }));
 }
@@ -138,7 +142,7 @@ fn fetch_package(package: &Package) -> CakeupResult<()> {
             .join(".nuget")
             .join("packages")
             .join(&package.name.to_lowercase())
-            .join(&package.version)
+            .join(format!("{}", &package.version))
             .join(&package.filename);
 
         if packages_path.exists() {
