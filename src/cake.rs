@@ -43,7 +43,12 @@ impl Package {
     }
 
     pub fn get_path(&self) -> PathBuf {
-        return self.directory.join(&self.filename);
+        let extension = if self.core_clr {
+            "dll"
+        } else {
+            "exe"
+        };
+        return self.directory.join(format!("{0}.{1}", &self.name, extension));
     }
 
     pub fn get_url(&self) -> String {
@@ -83,6 +88,7 @@ impl Cake {
 
     fn execute_script(&self, args: &Vec<String>) -> CakeupResult<i32> {
         &self.host.verify()?; // Verify the host.
+        trace!("Executing cake from: {}", &self.path.to_string_lossy());
         let result = &self.host.execute(&self.path, args)?;
         return match result.code() {
             Some(n) => Ok(n),
