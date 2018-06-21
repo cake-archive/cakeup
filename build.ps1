@@ -16,13 +16,12 @@ if (!(Test-Path $Tools)) {
 }
 
 # Make sure that cakeup is present.
-$CakeupVersion = "v0.2.93"
-$Cakeup = Join-Path $Tools "cakeup-x86_64-$CakeupVersion.exe"
+$Cakeup = Join-Path $Tools "cakeup-x86_64-latest.exe"
 if (!(Test-Path $Cakeup)) {
-    Write-Host "Downloading cakeup.exe ($CakeupVersion)..."
+    Write-Host "Downloading cakeup.exe..."
     try {
         $wc = (New-Object System.Net.WebClient);
-        $wc.DownloadFile("https://cakeup.blob.core.windows.net/windows/cakeup-x86_64-$CakeupVersion.exe", $Cakeup) } catch {
+        $wc.DownloadFile("https://cakeup.blob.core.windows.net/windows/cakeup-x86_64-latest.exe", $Cakeup) } catch {
             Throw "Could not download cakeup.exe."
     }
 }
