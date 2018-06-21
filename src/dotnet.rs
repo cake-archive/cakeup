@@ -158,8 +158,15 @@ fn get_path_separator() -> String {
     return String::from(";");
 }
 
-#[cfg(any(target_os = "macos", target_os = "linux"))]
 fn execute_install_script(dotnet_path: &PathBuf, version: &Version) -> CakeupResult<()> {
+    if platform::is_windows()? {
+        return execute_powershell_install_script(dotnet_path, version);
+    } else {
+        return execute_bash_install_script(dotnet_path, version);
+    }
+}
+
+fn execute_bash_install_script(dotnet_path: &PathBuf, version: &Version) -> CakeupResult<()> {
     // Download the installation script.
     let dotnet_script = dotnet_path.join("dotnet-install.sh");
     let dotnet_url = String::from("https://dot.net/v1/dotnet-install.sh");
@@ -188,8 +195,7 @@ fn execute_install_script(dotnet_path: &PathBuf, version: &Version) -> CakeupRes
     return Ok(());
 }
 
-#[cfg(target_os = "windows")]
-fn execute_install_script(dotnet_path: &PathBuf, version: &Version) -> CakeupResult<()> {
+fn execute_powershell_install_script(dotnet_path: &PathBuf, version: &Version) -> CakeupResult<()> {
     // Download the installation script.
     let dotnet_script = dotnet_path.join("dotnet-install.ps1");
     let dotnet_url = String::from("https://dot.net/v1/dotnet-install.ps1");

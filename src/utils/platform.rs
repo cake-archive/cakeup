@@ -1,9 +1,15 @@
 use utils::CakeupResult;
 
+#[derive(PartialEq)]
 pub enum Platform {
     Windows,
     Linux,
     MacOS,
+}
+
+pub fn is_windows() -> CakeupResult<bool> {
+    let platform = get_platform()?;
+    return Ok(platform == Platform::Windows);
 }
 
 pub fn get_platform_name() -> CakeupResult<String> {
