@@ -43,12 +43,7 @@ impl Package {
     }
 
     pub fn get_path(&self) -> PathBuf {
-        let extension = if self.core_clr {
-            "dll"
-        } else {
-            "exe"
-        };
-        return self.directory.join(format!("{0}.{1}", &self.name, extension));
+        return self.directory.join(&self.name);
     }
 
     pub fn get_url(&self) -> String {
@@ -87,8 +82,7 @@ impl Cake {
     }
 
     fn execute_script(&self, args: &Vec<String>) -> CakeupResult<i32> {
-        &self.host.verify()?; // Verify the host.
-        trace!("Executing cake from: {}", &self.path.to_string_lossy());
+        &self.host.verify()?;
         let result = &self.host.execute(&self.path, args)?;
         return match result.code() {
             Some(n) => Ok(n),
@@ -118,7 +112,7 @@ pub fn install(config: &Config) -> CakeupResult<Option<Cake>> {
     install_package(&package)?;
 
     return Ok(Option::Some(Cake {
-        path: package.get_path(),
+        path: get_executable_path(&package),
         version: package.version.clone(),
         host: Host::from_config(config),
     }));
@@ -175,4 +169,13 @@ fn fetch_package(package: &Package) -> CakeupResult<()> {
     http::download(&url, &path, Some(user_agent))?;
 
     return Ok(());
+}
+
+fn get_executable_path(package: &Package) -> PathBuf {
+    let extension = if package.core_clr {
+        "dll"
+    } else {
+        "exe"
+    };
+    return package.directory.join(format!("{0}.{1}", package.name, extension));
 }
