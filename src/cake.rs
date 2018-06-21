@@ -172,10 +172,10 @@ fn fetch_package(package: &Package) -> CakeupResult<()> {
 }
 
 fn get_executable_path(package: &Package) -> PathBuf {
-    let extension = if package.core_clr {
-        "dll"
+    let filename = if package.core_clr {
+        "Cake.dll"
     } else {
-        "exe"
+        "Cake.exe"
     };
-    return package.directory.join(format!("{0}.{1}", package.name, extension));
+    return package.directory.join(filename);
 }

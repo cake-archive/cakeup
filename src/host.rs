@@ -49,14 +49,19 @@ impl Host {
         let result: ExitStatus;
         match self {
             Host::Clr => {
-                result = Command::new(path).args(args).status()?;
+                result = Command::new(path)
+                    .args(args)
+                    .status()?;
             }
             Host::CoreClr | Host::Mono => {
                 let mut host = "dotnet";
                 if *self == Host::Mono {
                     host = "mono";
                 }
-                result = Command::new(host).arg(path).args(args).status()?;
+                result = Command::new(host)
+                    .arg(path)
+                    .args(args)
+                    .status()?;
             }
         };
         return Ok(result);
