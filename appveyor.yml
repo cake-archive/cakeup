@@ -4,7 +4,7 @@ init:
 
 # Build script
 build_script:
-  - ps: .\build.ps1
+  - cmd: powershell .\build.ps1 --verbosity=verbose
 
 # Tests
 test: off
@@ -31,4 +31,4 @@ branches:
 
 # Build cache
 cache:
-- tools -> build.cake
+- tools -> build.cake, build.ps1
