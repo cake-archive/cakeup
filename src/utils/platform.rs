@@ -1,4 +1,4 @@
-use utils::CakeupResult;
+use crate::utils::CakeupResult;
 
 #[derive(PartialEq)]
 pub enum Platform {

@@ -11,9 +11,9 @@ use std::str;
 use failure;
 use semver::Version;
 
-use Config;
-use utils::CakeupResult;
-use utils::{http, platform};
+use crate::Config;
+use crate::utils::CakeupResult;
+use crate::utils::{http, platform};
 
 pub fn install(config: &Config) -> CakeupResult<()> {
     if !should_install(config) {

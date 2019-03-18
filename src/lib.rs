@@ -6,9 +6,9 @@ extern crate semver;
 
 use std::fs;
 
-pub use config::Config;
-pub use utils::version::VERSION;
-pub use utils::CakeupResult;
+pub use crate::config::Config;
+pub use crate::utils::version::VERSION;
+pub use crate::utils::CakeupResult;
 
 mod cake;
 mod config;

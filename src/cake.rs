@@ -2,17 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-use std::env;
 use std::fs;
 use std::path::PathBuf;
 
 use failure;
 use semver::Version;
 
-use host::Host;
-use utils::CakeupResult;
-use utils::{http, zip};
-use Config;
+use crate::host::Host;
+use crate::utils::CakeupResult;
+use crate::utils::{http, zip};
+use crate::Config;
 
 pub struct Package {
     pub name: String,
@@ -141,7 +140,7 @@ fn install_package(package: &Package) -> CakeupResult<()> {
 
 fn fetch_package(package: &Package) -> CakeupResult<()> {
     let path = package.get_path();
-    let home = env::home_dir();
+    let home = dirs::home_dir();
     if home.is_some() {
         let packages_path = home
             .unwrap()
@@ -165,7 +164,7 @@ fn fetch_package(package: &Package) -> CakeupResult<()> {
 
     let url = package.get_url();
     trace!("Downloading {}...", url);
-    let user_agent = &format!("Cakeup NuGet Client/{}", ::utils::version::VERSION)[..];
+    let user_agent = &format!("Cakeup NuGet Client/{}", crate::utils::version::VERSION)[..];
     http::download(&url, &path, Some(user_agent))?;
 
     return Ok(());

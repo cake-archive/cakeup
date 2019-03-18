@@ -7,7 +7,7 @@ use std::env;
 use clap::{App, ArgMatches};
 use cakeup::{self, CakeupResult, Config};
 
-use commands::Command;
+use crate::commands::Command;
 
 pub struct RunCommand {}
 impl Command for RunCommand {

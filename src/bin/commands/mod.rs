@@ -1,7 +1,7 @@
 use clap::App;
 use cakeup::CakeupResult;
 
-use logger::Logger;
+use crate::logger::Logger;
 
 mod help;
 mod run;

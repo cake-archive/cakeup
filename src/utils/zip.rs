@@ -7,7 +7,7 @@ extern crate unzip;
 use std::fs;
 use std::path::Path;
 
-use utils::CakeupResult;
+use crate::utils::CakeupResult;
 
 pub fn unzip(input: &Path, output: &Path) -> CakeupResult<()> {
     let file = fs::File::open(&input)?;

@@ -4,8 +4,8 @@
 
 use std::process;
 
-use utils::{http, CakeupResult};
-use Config;
+use crate::utils::{http, CakeupResult};
+use crate::Config;
 
 pub fn install(config: &Config) -> CakeupResult<()> {
     if should_install(config) {

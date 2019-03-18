@@ -5,7 +5,7 @@
 use clap::App;
 use cakeup::CakeupResult;
 
-use commands::Command;
+use crate::commands::Command;
 
 pub struct HelpCommand {}
 impl Command for HelpCommand {

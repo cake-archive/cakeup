@@ -12,7 +12,7 @@ use std::str;
 
 use self::curl::easy::Easy;
 
-use utils::CakeupResult;
+use crate::utils::CakeupResult;
 
 pub fn download(uri: &String, path: &Path, user_agent: Option<&str>) -> CakeupResult<()> {
     let mut handle = Easy::new();
