@@ -10,7 +10,7 @@ pub trait Command {
     fn run(&self, app: App) -> CakeupResult<i32>;
 }
 
-pub fn get_command(app: &mut App) -> Box<Command> {
+pub fn get_command(app: &mut App) -> Box<dyn Command> {
     let args = app.clone().get_matches(); // get_matches take ownership.
 
     // Initialize logging.
